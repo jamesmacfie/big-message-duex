@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_04_091834) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_04_092913) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -96,6 +96,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_091834) do
     t.datetime "deleted_at"
     t.index ["channel_id", "created_at"], name: "index_messages_on_channel_id_and_created_at"
     t.index ["channel_id"], name: "index_messages_on_channel_id"
+    t.index ["deleted_at"], name: "index_messages_on_deleted_at"
     t.index ["edited_at"], name: "index_messages_on_edited_at"
     t.index ["parent_message_id"], name: "index_messages_on_parent_message_id"
     t.index ["person_id"], name: "index_messages_on_person_id"
