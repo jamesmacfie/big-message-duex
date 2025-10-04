@@ -38,4 +38,14 @@ class Member < ApplicationRecord
   def typing?
     typing_at.present? && typing_at > 5.seconds.ago
   end
+
+  def unread_count
+    return 0 unless last_viewed_at
+
+    channel.messages.where("created_at > ?", last_viewed_at).count
+  end
+
+  def has_unread?
+    unread_count > 0
+  end
 end

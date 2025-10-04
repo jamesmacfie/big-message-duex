@@ -35,6 +35,7 @@ class ChannelsController < ApplicationController
     @messages = @channel.messages.top_level.includes(:person).ordered
     @message = Message.new
     @current_member = @channel.members.find_by(person: current_user.person)
+    @current_member&.update_last_viewed!
   end
 
   def edit
