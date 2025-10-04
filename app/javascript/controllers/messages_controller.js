@@ -26,12 +26,27 @@ export default class extends Controller {
       setTimeout(() => this.scrollToBottom(), 100)
     })
 
-    // Track typing people
-    this.typingPeople = new Set()
+    // Track typing people (Map: personId -> personName)
+    this.typingPeople = new Map()
+    this.typingTimeouts = new Map()
     this.typingTimeout = null
+    this.isTyping = false
   }
 
   disconnect() {
+    // Stop typing indicator before unsubscribing
+    this.stopTyping()
+
+    // Clear all timeouts
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout)
+      this.typingTimeout = null
+    }
+    if (this.typingTimeouts) {
+      this.typingTimeouts.forEach(timeout => clearTimeout(timeout))
+      this.typingTimeouts.clear()
+    }
+
     if (this.subscription) {
       this.subscription.unsubscribe()
     }
@@ -182,6 +197,7 @@ export default class extends Controller {
       }
       // Stop typing indicator when message is sent
       this.stopTyping()
+      this.isTyping = false
       if (this.typingTimeout) {
         clearTimeout(this.typingTimeout)
         this.typingTimeout = null
@@ -200,24 +216,28 @@ export default class extends Controller {
   }
 
   handleInput(event) {
-    // Send typing indicator (throttled)
+    // Send typing indicator (throttled to avoid excessive server requests)
     if (this.subscription) {
       this.sendTyping()
     }
   }
 
   sendTyping() {
+    // Only send typing event if not already marked as typing (throttle)
+    if (!this.isTyping) {
+      this.subscription.perform("typing", { person_id: this.currentPersonIdValue })
+      this.isTyping = true
+    }
+
     // Clear any existing timeout
     if (this.typingTimeout) {
       clearTimeout(this.typingTimeout)
     }
 
-    // Send typing event
-    this.subscription.perform("typing", { person_id: this.currentPersonIdValue })
-
     // Set timeout to stop typing after 3 seconds of inactivity
     this.typingTimeout = setTimeout(() => {
       this.stopTyping()
+      this.isTyping = false
     }, 3000)
   }
 
@@ -228,26 +248,36 @@ export default class extends Controller {
   }
 
   addTypingPerson(personId, personName) {
-    this.typingPeople.add({ id: personId, name: personName })
+    // Clear existing timeout if any (person sent new typing event)
+    if (this.typingTimeouts.has(personId)) {
+      clearTimeout(this.typingTimeouts.get(personId))
+    }
+
+    this.typingPeople.set(personId, personName)
     this.updateTypingIndicator()
 
     // Auto-remove after 5 seconds
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       this.removeTypingPerson(personId)
     }, 5000)
+    this.typingTimeouts.set(personId, timeout)
   }
 
   removeTypingPerson(personId) {
-    this.typingPeople = new Set(
-      Array.from(this.typingPeople).filter(p => p.id !== personId)
-    )
+    // Clear timeout if exists
+    if (this.typingTimeouts.has(personId)) {
+      clearTimeout(this.typingTimeouts.get(personId))
+      this.typingTimeouts.delete(personId)
+    }
+
+    this.typingPeople.delete(personId)
     this.updateTypingIndicator()
   }
 
   updateTypingIndicator() {
     if (!this.hasTypingIndicatorTarget) return
 
-    const typingArray = Array.from(this.typingPeople)
+    const typingArray = Array.from(this.typingPeople.entries()).map(([id, name]) => ({ id, name }))
 
     if (typingArray.length === 0) {
       this.typingIndicatorTarget.classList.add('hidden')
