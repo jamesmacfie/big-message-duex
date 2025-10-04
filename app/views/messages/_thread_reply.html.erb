@@ -1,0 +1,18 @@
+<div class="flex items-start space-x-3" id="reply-<%= reply.id %>">
+  <% if reply.person.avatar.attached? %>
+    <%= image_tag reply.person.avatar, class: "h-8 w-8 rounded-full object-cover" %>
+  <% else %>
+    <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+      <span class="text-xs font-medium text-indigo-600"><%= reply.person.name[0].upcase %></span>
+    </div>
+  <% end %>
+  <div class="flex-1 min-w-0">
+    <div class="flex items-baseline space-x-2">
+      <p class="text-sm font-semibold text-gray-900"><%= reply.person.name %></p>
+      <p class="text-xs text-gray-500"><%= reply.created_at.strftime("%l:%M %p") %></p>
+    </div>
+    <div class="mt-1 text-sm text-gray-700">
+      <%= simple_format(reply.content, class: "whitespace-pre-wrap") %>
+    </div>
+  </div>
+</div>

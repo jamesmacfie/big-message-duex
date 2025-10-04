@@ -3,23 +3,42 @@ class MessagesController < ApplicationController
   before_action :require_confirmed_email
   before_action :set_channel
   before_action :authorize_channel_access
+  before_action :set_message, only: [:thread]
 
   def create
     @message = @channel.messages.build(message_params)
     @message.person = current_user.person
 
     if @message.save
-      # Broadcast the new message to all subscribers
-      ChatRoomChannel.broadcast_to(
-        @channel,
-        {
-          message: render_to_string(partial: "messages/message", locals: { message: @message }),
-          sender_id: current_user.person.id
-        }
-      )
+      if @message.parent_message_id.present?
+        # This is a thread reply - broadcast to thread subscribers
+        ChatRoomChannel.broadcast_to(
+          @channel,
+          {
+            type: "thread_reply",
+            parent_message_id: @message.parent_message_id,
+            reply: render_to_string(partial: "messages/thread_reply", locals: { reply: @message }),
+            sender_id: current_user.person.id
+          }
+        )
+      else
+        # This is a top-level message - broadcast normally
+        ChatRoomChannel.broadcast_to(
+          @channel,
+          {
+            type: "message",
+            message: render_to_string(partial: "messages/message", locals: { message: @message }),
+            sender_id: current_user.person.id
+          }
+        )
+      end
 
       respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }) }
+        if @message.parent_message_id.present?
+          format.turbo_stream { render turbo_stream: turbo_stream.append("thread-replies-#{@message.parent_message_id}", partial: "messages/thread_reply", locals: { reply: @message }) }
+        else
+          format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }) }
+        end
         format.html { redirect_to @channel }
       end
     else
@@ -30,7 +49,20 @@ class MessagesController < ApplicationController
     end
   end
 
+  def thread
+    @replies = @message.replies.includes(:person).ordered
+    @reply = Message.new(parent_message_id: @message.id)
+
+    respond_to do |format|
+      format.html { render partial: "messages/thread_panel", locals: { message: @message, replies: @replies, reply: @reply, channel: @channel } }
+    end
+  end
+
   private
+
+  def set_message
+    @message = @channel.messages.find(params[:id])
+  end
 
   def set_channel
     @channel = Channel.find(params[:channel_id])
@@ -44,6 +76,6 @@ class MessagesController < ApplicationController
   end
 
   def message_params
-    params.require(:message).permit(:content)
+    params.require(:message).permit(:content, :parent_message_id)
   end
 end

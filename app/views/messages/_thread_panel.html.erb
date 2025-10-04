@@ -1,0 +1,80 @@
+<div class="flex flex-col h-full bg-white border-l border-gray-200">
+  <!-- Thread header -->
+  <div class="px-6 py-4 border-b border-gray-200">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-semibold text-gray-900">Thread</h3>
+      <button type="button" data-action="click->thread#close" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Parent message -->
+  <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+    <div class="flex items-start space-x-3">
+      <% if message.person.avatar.attached? %>
+        <%= image_tag message.person.avatar, class: "h-10 w-10 rounded-full object-cover" %>
+      <% else %>
+        <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+          <span class="text-sm font-medium text-indigo-600"><%= message.person.name[0].upcase %></span>
+        </div>
+      <% end %>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-baseline space-x-2">
+          <p class="text-sm font-semibold text-gray-900"><%= message.person.name %></p>
+          <p class="text-xs text-gray-500"><%= message.created_at.strftime("%l:%M %p") %></p>
+        </div>
+        <div class="mt-1 text-sm text-gray-700">
+          <%= simple_format(message.content, class: "whitespace-pre-wrap") %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Replies list -->
+  <div class="flex-1 overflow-y-auto px-6 py-4">
+    <% if replies.any? %>
+      <div id="thread-replies-<%= message.id %>" class="space-y-4">
+        <% replies.each do |reply| %>
+          <div class="flex items-start space-x-3" id="reply-<%= reply.id %>">
+            <% if reply.person.avatar.attached? %>
+              <%= image_tag reply.person.avatar, class: "h-8 w-8 rounded-full object-cover" %>
+            <% else %>
+              <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                <span class="text-xs font-medium text-indigo-600"><%= reply.person.name[0].upcase %></span>
+              </div>
+            <% end %>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-baseline space-x-2">
+                <p class="text-sm font-semibold text-gray-900"><%= reply.person.name %></p>
+                <p class="text-xs text-gray-500"><%= reply.created_at.strftime("%l:%M %p") %></p>
+              </div>
+              <div class="mt-1 text-sm text-gray-700">
+                <%= simple_format(reply.content, class: "whitespace-pre-wrap") %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="text-sm text-gray-500 text-center py-8">No replies yet. Start the conversation!</p>
+    <% end %>
+  </div>
+
+  <!-- Reply form -->
+  <div class="border-t border-gray-200 px-6 py-4 bg-white">
+    <%= form_with model: [channel, reply], class: "flex items-start space-x-3" do |f| %>
+      <%= f.hidden_field :parent_message_id %>
+      <div class="flex-1">
+        <%= f.text_area :content,
+            rows: 2,
+            placeholder: "Reply to thread...",
+            class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
+            required: true %>
+      </div>
+      <%= f.submit "Reply", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
+    <% end %>
+  </div>
+</div>

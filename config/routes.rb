@@ -22,7 +22,11 @@ Rails.application.routes.draw do
 
   # Channels
   resources :channels, only: [ :index, :new, :create, :show, :edit, :update ] do
-    resources :messages, only: [ :create ]
+    resources :messages, only: [ :create ] do
+      member do
+        get :thread
+      end
+    end
     resources :members, only: [ :index, :create, :update, :destroy ]
     collection do
       get :browse

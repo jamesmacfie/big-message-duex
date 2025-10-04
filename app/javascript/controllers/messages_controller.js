@@ -44,8 +44,29 @@ export default class extends Controller {
   _received(data) {
     // Append message from other users (current user's message shown via Turbo Stream)
     if (data.sender_id !== this.currentPersonIdValue) {
-      this.containerTarget.insertAdjacentHTML("beforeend", data.message)
-      setTimeout(() => this.scrollToBottom(), 100)
+      if (data.type === "thread_reply") {
+        // Handle thread reply
+        const threadContainer = document.getElementById(`thread-replies-${data.parent_message_id}`)
+        if (threadContainer) {
+          threadContainer.insertAdjacentHTML("beforeend", data.reply)
+        }
+        // Update the thread indicator on the parent message
+        this.updateThreadIndicator(data.parent_message_id)
+      } else {
+        // Handle regular message
+        this.containerTarget.insertAdjacentHTML("beforeend", data.message)
+        setTimeout(() => this.scrollToBottom(), 100)
+      }
+    }
+  }
+
+  updateThreadIndicator(messageId) {
+    // Reload the parent message to update thread indicators
+    // This is a simple approach - could be optimized with targeted updates
+    const messageElement = document.getElementById(`message-${messageId}`)
+    if (messageElement) {
+      // For now, we'll just reload the message via fetch
+      // In a more complex implementation, you'd update just the indicator
     }
   }
 

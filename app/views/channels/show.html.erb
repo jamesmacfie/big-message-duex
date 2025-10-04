@@ -115,10 +115,11 @@
   </div>
 
   <!-- Main content area -->
-  <div class="flex-1 flex flex-col"
-       data-controller="messages"
-       data-messages-channel-id-value="<%= @channel.id %>"
-       data-messages-current-person-id-value="<%= current_user.person.id %>">
+  <div class="flex-1 flex">
+    <div class="flex-1 flex flex-col"
+         data-controller="messages"
+         data-messages-channel-id-value="<%= @channel.id %>"
+         data-messages-current-person-id-value="<%= current_user.person.id %>">
     <!-- Channel header -->
     <div class="bg-white border-b border-gray-200 px-6 py-4">
       <div class="flex items-center justify-between">
@@ -244,6 +245,14 @@
         </div>
         <%= f.submit "Send", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
       <% end %>
+    </div>
+    </div>
+
+    <!-- Thread panel (initially hidden, populated by Stimulus) -->
+    <div id="thread-panel"
+         class="w-96 hidden"
+         data-controller="thread"
+         data-thread-channel-id-value="<%= @channel.id %>">
     </div>
   </div>
 </div>
