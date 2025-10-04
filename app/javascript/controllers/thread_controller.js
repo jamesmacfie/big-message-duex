@@ -50,6 +50,14 @@ export default class extends Controller {
         this.threadPanel.innerHTML = html
         this.threadPanel.classList.remove("hidden")
 
+        // Focus the reply input
+        setTimeout(() => {
+          const replyInput = this.threadPanel.querySelector('textarea[data-thread-target="replyInput"]')
+          if (replyInput) {
+            replyInput.focus()
+          }
+        }, 100)
+
         // Scroll to bottom after opening
         setTimeout(() => this.scrollThreadToBottom(), 100)
 
@@ -102,9 +110,11 @@ export default class extends Controller {
   resetReplyForm(event) {
     // Reset the reply form after successful submission
     if (event.detail.success !== false) {
-      if (this.hasReplyInputTarget) {
-        this.replyInputTarget.value = ''
-        this.replyInputTarget.focus()
+      // Find the reply input within the thread panel (since it's dynamically loaded)
+      const replyInput = this.threadPanel.querySelector('textarea[data-thread-target="replyInput"]')
+      if (replyInput) {
+        replyInput.value = ''
+        replyInput.focus()
       }
       // Scroll to bottom after adding reply
       setTimeout(() => this.scrollThreadToBottom(), 100)
