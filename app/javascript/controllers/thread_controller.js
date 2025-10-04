@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import consumer from "channels/consumer"
 
 export default class extends Controller {
-  static targets = ["panel"]
+  static targets = ["panel", "replyInput"]
   static values = {
     messageId: Number,
     channelId: Number
@@ -97,5 +97,16 @@ export default class extends Controller {
     // Form submission is handled by Turbo
     // Auto-scroll after reply submission
     setTimeout(() => this.scrollThreadToBottom(), 100)
+  }
+
+  resetReplyForm(event) {
+    // Reset the reply form after successful submission
+    if (event.detail.success !== false) {
+      if (this.hasReplyInputTarget) {
+        this.replyInputTarget.value = ''
+      }
+      // Scroll to bottom after adding reply
+      setTimeout(() => this.scrollThreadToBottom(), 100)
+    }
   }
 }

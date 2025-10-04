@@ -35,7 +35,12 @@ class MessagesController < ApplicationController
 
       respond_to do |format|
         if @message.parent_message_id.present?
-          format.turbo_stream { render turbo_stream: turbo_stream.append("thread-replies-#{@message.parent_message_id}", partial: "messages/thread_reply", locals: { reply: @message }) }
+          format.turbo_stream do
+            render turbo_stream: [
+              turbo_stream.remove("no-replies-#{@message.parent_message_id}"),
+              turbo_stream.append("thread-replies-#{@message.parent_message_id}", partial: "messages/thread_reply", locals: { reply: @message })
+            ]
+          end
         else
           format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }) }
         end

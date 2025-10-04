@@ -48,6 +48,11 @@ export default class extends Controller {
         // Handle thread reply
         const threadContainer = document.getElementById(`thread-replies-${data.parent_message_id}`)
         if (threadContainer) {
+          // Remove "No replies yet" message if it exists
+          const noRepliesMsg = document.getElementById(`no-replies-${data.parent_message_id}`)
+          if (noRepliesMsg) {
+            noRepliesMsg.remove()
+          }
           threadContainer.insertAdjacentHTML("beforeend", data.reply)
         }
         // Update the thread indicator on the parent message

@@ -35,8 +35,8 @@
 
   <!-- Replies list -->
   <div class="flex-1 overflow-y-auto px-6 py-4">
-    <% if replies.any? %>
-      <div id="thread-replies-<%= message.id %>" class="space-y-4">
+    <div id="thread-replies-<%= message.id %>" class="space-y-4">
+      <% if replies.any? %>
         <% replies.each do |reply| %>
           <div class="flex items-start space-x-3" id="reply-<%= reply.id %>">
             <% if reply.person.avatar.attached? %>
@@ -57,21 +57,24 @@
             </div>
           </div>
         <% end %>
-      </div>
-    <% else %>
-      <p class="text-sm text-gray-500 text-center py-8">No replies yet. Start the conversation!</p>
-    <% end %>
+      <% else %>
+        <p id="no-replies-<%= message.id %>" class="text-sm text-gray-500 text-center py-8">No replies yet. Start the conversation!</p>
+      <% end %>
+    </div>
   </div>
 
   <!-- Reply form -->
   <div class="border-t border-gray-200 px-6 py-4 bg-white">
-    <%= form_with model: [channel, reply], class: "flex items-start space-x-3" do |f| %>
+    <%= form_with model: [channel, reply],
+                  class: "flex items-start space-x-3",
+                  data: { action: "turbo:submit-end->thread#resetReplyForm" } do |f| %>
       <%= f.hidden_field :parent_message_id %>
       <div class="flex-1">
         <%= f.text_area :content,
             rows: 2,
             placeholder: "Reply to thread...",
             class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
+            data: { thread_target: "replyInput" },
             required: true %>
       </div>
       <%= f.submit "Reply", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
