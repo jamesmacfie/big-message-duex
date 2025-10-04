@@ -1,11 +1,17 @@
 class ChannelsController < ApplicationController
   before_action :require_login
   before_action :require_confirmed_email
-  before_action :set_channel, only: [ :show ]
-  before_action :authorize_channel_access, only: [ :show ]
+  before_action :set_channel, only: [ :show, :edit, :update, :archive ]
+  before_action :authorize_channel_access, only: [ :show, :edit, :update, :archive ]
+  before_action :authorize_admin, only: [ :edit, :update, :archive ]
 
   def index
-    @channels = current_user.person.accessible_channels.channels.order(:name)
+    @channels = current_user.person.accessible_channels.channels.active.order(:name)
+  end
+
+  def browse
+    @all_channels = Channel.channels.active.public_channels.includes(:members, :people).order(:name)
+    @user_channel_ids = current_user.person.accessible_channels.pluck(:id)
   end
 
   def new
@@ -28,6 +34,23 @@ class ChannelsController < ApplicationController
     @channel = Channel.includes(members: :person).find(params[:id])
     @messages = @channel.messages.includes(:person).ordered
     @message = Message.new
+    @current_member = @channel.members.find_by(person: current_user.person)
+  end
+
+  def edit
+  end
+
+  def update
+    if @channel.update(channel_params)
+      redirect_to @channel, notice: "Channel updated successfully."
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  def archive
+    @channel.archive!
+    redirect_to channels_path, notice: "Channel has been archived."
   end
 
   private
@@ -53,5 +76,11 @@ class ChannelsController < ApplicationController
 
   def channel_params
     params.require(:channel).permit(:name, :description, :is_private)
+  end
+
+  def authorize_admin
+    unless @channel.admin?(current_user.person)
+      redirect_to @channel, alert: "Only channel admins can perform this action."
+    end
   end
 end

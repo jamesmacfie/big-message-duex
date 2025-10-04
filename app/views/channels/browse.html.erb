@@ -1,0 +1,99 @@
+<div class="min-h-screen bg-gray-50 py-8">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">
+            Browse Channels
+          </h1>
+          <p class="mt-1 text-sm text-gray-600">
+            Discover and join public channels
+          </p>
+        </div>
+        <div class="flex space-x-3">
+          <%= link_to "Your Channels", channels_path, class: "inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50" %>
+          <%= link_to "Create Channel", new_channel_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Channels Grid -->
+    <% if @all_channels.any? %>
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <% @all_channels.each do |channel| %>
+          <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+            <div class="p-6">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                  <span class="text-gray-500 mr-1">#</span>
+                  <%= channel.name %>
+                </h3>
+                <% if @user_channel_ids.include?(channel.id) %>
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                    Joined
+                  </span>
+                <% end %>
+              </div>
+
+              <% if channel.description.present? %>
+                <p class="text-sm text-gray-600 mb-4 line-clamp-2">
+                  <%= channel.description %>
+                </p>
+              <% else %>
+                <p class="text-sm text-gray-400 mb-4 italic">
+                  No description
+                </p>
+              <% end %>
+
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-500">
+                  <%= pluralize(channel.members.count, 'member') %>
+                </div>
+
+                <% if @user_channel_ids.include?(channel.id) %>
+                  <%= link_to "View", channel, class: "inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-indigo-700 bg-indigo-100 hover:bg-indigo-200" %>
+                <% else %>
+                  <%= link_to "Join", channel, class: "inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-white bg-indigo-600 hover:bg-indigo-700" %>
+                <% end %>
+              </div>
+
+              <% if channel.members.any? %>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                  <p class="text-xs text-gray-500 mb-2">Members:</p>
+                  <div class="flex -space-x-2 overflow-hidden">
+                    <% channel.members.includes(:person).limit(5).each do |member| %>
+                      <% if member.person.avatar.attached? %>
+                        <%= image_tag member.person.avatar, class: "inline-block h-6 w-6 rounded-full ring-2 ring-white", title: member.person.name %>
+                      <% else %>
+                        <div class="inline-flex h-6 w-6 rounded-full bg-indigo-100 ring-2 ring-white items-center justify-center" title="<%= member.person.name %>">
+                          <span class="text-xs font-medium text-indigo-600"><%= member.person.name[0].upcase %></span>
+                        </div>
+                      <% end %>
+                    <% end %>
+                    <% if channel.members.count > 5 %>
+                      <div class="inline-flex h-6 w-6 rounded-full bg-gray-100 ring-2 ring-white items-center justify-center">
+                        <span class="text-xs text-gray-600">+<%= channel.members.count - 5 %></span>
+                      </div>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">No public channels</h3>
+        <p class="mt-1 text-sm text-gray-500">Get started by creating a new channel.</p>
+        <div class="mt-6">
+          <%= link_to "Create Channel", new_channel_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

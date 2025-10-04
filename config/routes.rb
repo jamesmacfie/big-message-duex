@@ -18,8 +18,15 @@ Rails.application.routes.draw do
   resources :invites, only: [ :new, :create ]
 
   # Channels
-  resources :channels, only: [ :index, :new, :create, :show ] do
+  resources :channels, only: [ :index, :new, :create, :show, :edit, :update ] do
     resources :messages, only: [ :create ]
+    resources :members, only: [ :index, :create, :update, :destroy ]
+    collection do
+      get :browse
+    end
+    member do
+      post :archive
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
