@@ -20,9 +20,17 @@ Rails.application.routes.draw do
   # Direct Messages
   resources :dms, only: [ :new, :create ]
 
+  # Messages (for reactions)
+  resources :messages, only: [] do
+    resources :reactions, only: [ :create ]
+    member do
+      get :reactions_partial
+    end
+  end
+
   # Channels
   resources :channels, only: [ :index, :new, :create, :show, :edit, :update ] do
-    resources :messages, only: [ :create ] do
+    resources :messages, only: [ :create, :show, :update, :destroy ] do
       member do
         get :thread
         get :thread_indicator

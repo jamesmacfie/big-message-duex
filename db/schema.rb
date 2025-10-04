@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_04_082245) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_04_091834) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -93,6 +93,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_082245) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "parent_message_id"
+    t.datetime "deleted_at"
     t.index ["channel_id", "created_at"], name: "index_messages_on_channel_id_and_created_at"
     t.index ["channel_id"], name: "index_messages_on_channel_id"
     t.index ["edited_at"], name: "index_messages_on_edited_at"
@@ -111,6 +112,17 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_082245) do
     t.datetime "updated_at", null: false
     t.index ["is_agent"], name: "index_people_on_is_agent"
     t.index ["user_id"], name: "index_people_on_user_id"
+  end
+
+  create_table "reactions", force: :cascade do |t|
+    t.bigint "message_id", null: false
+    t.bigint "person_id", null: false
+    t.string "emoji", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id", "person_id", "emoji"], name: "index_reactions_on_message_id_and_person_id_and_emoji", unique: true
+    t.index ["message_id"], name: "index_reactions_on_message_id"
+    t.index ["person_id"], name: "index_reactions_on_person_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -138,4 +150,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_082245) do
   add_foreign_key "messages", "messages", column: "parent_message_id"
   add_foreign_key "messages", "people"
   add_foreign_key "people", "users"
+  add_foreign_key "reactions", "messages"
+  add_foreign_key "reactions", "people"
 end

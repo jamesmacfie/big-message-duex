@@ -1,9 +1,11 @@
 class MessagesController < ApplicationController
   before_action :require_login
   before_action :require_confirmed_email
-  before_action :set_channel
-  before_action :authorize_channel_access
-  before_action :set_message, only: [:thread, :thread_indicator]
+  before_action :set_channel, except: [:reactions_partial]
+  before_action :authorize_channel_access, except: [:reactions_partial]
+  before_action :set_message, only: [:show, :thread, :thread_indicator, :update, :destroy]
+  before_action :set_message_without_channel, only: [:reactions_partial]
+  before_action :authorize_message_owner, only: [:update, :destroy]
 
   def create
     @message = @channel.messages.build(message_params)
@@ -54,6 +56,15 @@ class MessagesController < ApplicationController
     end
   end
 
+  def show
+    respond_to do |format|
+      format.html do
+        render partial: @message.thread? ? "messages/thread_reply" : "messages/message",
+               locals: @message.thread? ? { reply: @message } : { message: @message }
+      end
+    end
+  end
+
   def thread
     @replies = @message.replies.includes(:person).ordered
     @reply = Message.new(parent_message_id: @message.id)
@@ -69,10 +80,79 @@ class MessagesController < ApplicationController
     end
   end
 
+  def reactions_partial
+    respond_to do |format|
+      format.html { render partial: "messages/reactions", locals: { message: @message } }
+    end
+  end
+
+  def update
+    if @message.update(message_params)
+      @message.mark_as_edited!
+
+      # Broadcast the updated message
+      ChatRoomChannel.broadcast_to(
+        @channel,
+        {
+          type: "message_updated",
+          message_id: @message.id,
+          content: @message.content,
+          edited: true,
+          sender_id: current_user.person.id
+        }
+      )
+
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            "message-#{@message.id}",
+            partial: @message.thread? ? "messages/thread_reply" : "messages/message",
+            locals: @message.thread? ? { reply: @message } : { message: @message }
+          )
+        end
+        format.html { redirect_to @channel }
+      end
+    else
+      respond_to do |format|
+        format.turbo_stream { head :unprocessable_entity }
+        format.html { redirect_to @channel, alert: "Failed to update message" }
+      end
+    end
+  end
+
+  def destroy
+    @message.update(content: "[deleted]", deleted_at: Time.current)
+
+    # Broadcast the deleted message
+    ChatRoomChannel.broadcast_to(
+      @channel,
+      {
+        type: "message_deleted",
+        message_id: @message.id,
+        sender_id: current_user.person.id
+      }
+    )
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: turbo_stream.replace(
+          "message-#{@message.id}",
+          partial: @message.thread? ? "messages/thread_reply" : "messages/message",
+          locals: @message.thread? ? { reply: @message } : { message: @message }
+        )
+      end
+      format.html { redirect_to @channel }
+    end
+  end
+
   private
 
   def set_message
     @message = @channel.messages.find(params[:id])
+  end
+
+  def set_message_without_channel
+    @message = Message.find(params[:id])
   end
 
   def set_channel
@@ -83,6 +163,13 @@ class MessagesController < ApplicationController
     unless @channel.member?(current_user.person) || (!@channel.is_private && @channel.channel_type == "channel")
       flash[:alert] = "You don't have access to this channel."
       redirect_to channels_path
+    end
+  end
+
+  def authorize_message_owner
+    unless @message.person_id == current_user.person.id
+      flash[:alert] = "You can only edit or delete your own messages."
+      redirect_to @channel
     end
   end
 

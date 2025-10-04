@@ -42,6 +42,50 @@ export default class extends Controller {
   }
 
   _received(data) {
+    // Handle message updates
+    if (data.type === "message_updated") {
+      if (data.sender_id !== this.currentPersonIdValue) {
+        const messageElement = document.getElementById(`message-${data.message_id}`)
+        if (messageElement) {
+          // Fetch the updated message HTML
+          const channelId = this.channelIdValue
+          fetch(`/channels/${channelId}/messages/${data.message_id}`)
+            .then(response => response.text())
+            .then(html => {
+              messageElement.outerHTML = html
+            })
+            .catch(error => console.error('Error updating message:', error))
+        }
+      }
+      return
+    }
+
+    // Handle message deletion
+    if (data.type === "message_deleted") {
+      if (data.sender_id !== this.currentPersonIdValue) {
+        const messageElement = document.getElementById(`message-${data.message_id}`)
+        if (messageElement) {
+          // Fetch the updated message HTML
+          const channelId = this.channelIdValue
+          fetch(`/channels/${channelId}/messages/${data.message_id}`)
+            .then(response => response.text())
+            .then(html => {
+              messageElement.outerHTML = html
+            })
+            .catch(error => console.error('Error deleting message:', error))
+        }
+      }
+      return
+    }
+
+    // Handle reaction updates
+    if (data.type === "reaction_added" || data.type === "reaction_removed") {
+      if (data.sender_id !== this.currentPersonIdValue) {
+        this.updateReactions(data.message_id)
+      }
+      return
+    }
+
     // Append message from other users (current user's message shown via Turbo Stream)
     if (data.sender_id !== this.currentPersonIdValue) {
       if (data.type === "thread_reply") {
@@ -78,6 +122,21 @@ export default class extends Controller {
       })
       .catch(error => {
         console.error('Error updating thread indicator:', error)
+      })
+  }
+
+  updateReactions(messageId) {
+    // Fetch and update reactions for a message
+    const reactionsElement = document.getElementById(`reactions-${messageId}`)
+    if (!reactionsElement) return
+
+    fetch(`/messages/${messageId}/reactions_partial`)
+      .then(response => response.text())
+      .then(html => {
+        reactionsElement.outerHTML = html
+      })
+      .catch(error => {
+        console.error('Error updating reactions:', error)
       })
   }
 
