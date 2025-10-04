@@ -272,6 +272,11 @@
 
     <!-- Message input -->
     <div class="bg-white border-t border-gray-200 px-6 py-4">
+      <!-- Typing indicator -->
+      <div class="mb-2 px-1">
+        <p class="text-sm text-gray-500 italic hidden" data-messages-target="typingIndicator"></p>
+      </div>
+
       <%= form_with model: [@channel, @message],
                     class: "flex items-start space-x-3",
                     data: { messages_target: "form", action: "turbo:submit-end->messages#resetForm" } do |f| %>
@@ -280,7 +285,7 @@
               rows: 1,
               placeholder: @channel.dm? ? "Message #{@channel.dm_name_for(current_user.person)}" : "Message ##{@channel.name}",
               class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
-              data: { messages_target: "input", action: "keydown->messages#handleKeydown" },
+              data: { messages_target: "input", action: "keydown->messages#handleKeydown input->messages#handleInput" },
               required: true %>
         </div>
         <%= f.submit "Send", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>

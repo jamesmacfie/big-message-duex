@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import consumer from "channels/consumer"
 
 export default class extends Controller {
-  static targets = ["container", "form", "input"]
+  static targets = ["container", "form", "input", "typingIndicator"]
   static values = {
     channelId: Number,
     currentPersonId: Number
@@ -25,6 +25,10 @@ export default class extends Controller {
     this.element.addEventListener('turbo:submit-end', () => {
       setTimeout(() => this.scrollToBottom(), 100)
     })
+
+    // Track typing people
+    this.typingPeople = new Set()
+    this.typingTimeout = null
   }
 
   disconnect() {
@@ -42,6 +46,21 @@ export default class extends Controller {
   }
 
   _received(data) {
+    // Handle typing indicators
+    if (data.type === "typing") {
+      if (data.person_id !== this.currentPersonIdValue) {
+        this.addTypingPerson(data.person_id, data.person_name)
+      }
+      return
+    }
+
+    if (data.type === "stop_typing") {
+      if (data.person_id !== this.currentPersonIdValue) {
+        this.removeTypingPerson(data.person_id)
+      }
+      return
+    }
+
     // Update sidebar unread count for new messages from other users
     if (data.type === "message" && data.sender_id !== this.currentPersonIdValue && data.channel_id) {
       this.incrementSidebarBadge(data.channel_id)
@@ -161,6 +180,12 @@ export default class extends Controller {
         this.inputTarget.value = ''
         this.inputTarget.focus()
       }
+      // Stop typing indicator when message is sent
+      this.stopTyping()
+      if (this.typingTimeout) {
+        clearTimeout(this.typingTimeout)
+        this.typingTimeout = null
+      }
     }
   }
 
@@ -171,6 +196,71 @@ export default class extends Controller {
       if (this.hasFormTarget) {
         this.formTarget.requestSubmit()
       }
+    }
+  }
+
+  handleInput(event) {
+    // Send typing indicator (throttled)
+    if (this.subscription) {
+      this.sendTyping()
+    }
+  }
+
+  sendTyping() {
+    // Clear any existing timeout
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout)
+    }
+
+    // Send typing event
+    this.subscription.perform("typing", { person_id: this.currentPersonIdValue })
+
+    // Set timeout to stop typing after 3 seconds of inactivity
+    this.typingTimeout = setTimeout(() => {
+      this.stopTyping()
+    }, 3000)
+  }
+
+  stopTyping() {
+    if (this.subscription) {
+      this.subscription.perform("stop_typing", { person_id: this.currentPersonIdValue })
+    }
+  }
+
+  addTypingPerson(personId, personName) {
+    this.typingPeople.add({ id: personId, name: personName })
+    this.updateTypingIndicator()
+
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+      this.removeTypingPerson(personId)
+    }, 5000)
+  }
+
+  removeTypingPerson(personId) {
+    this.typingPeople = new Set(
+      Array.from(this.typingPeople).filter(p => p.id !== personId)
+    )
+    this.updateTypingIndicator()
+  }
+
+  updateTypingIndicator() {
+    if (!this.hasTypingIndicatorTarget) return
+
+    const typingArray = Array.from(this.typingPeople)
+
+    if (typingArray.length === 0) {
+      this.typingIndicatorTarget.classList.add('hidden')
+      this.typingIndicatorTarget.textContent = ''
+    } else if (typingArray.length === 1) {
+      this.typingIndicatorTarget.classList.remove('hidden')
+      this.typingIndicatorTarget.textContent = `${typingArray[0].name} is typing...`
+    } else if (typingArray.length === 2) {
+      this.typingIndicatorTarget.classList.remove('hidden')
+      this.typingIndicatorTarget.textContent = `${typingArray[0].name} and ${typingArray[1].name} are typing...`
+    } else {
+      this.typingIndicatorTarget.classList.remove('hidden')
+      this.typingIndicatorTarget.textContent = `${typingArray.length} people are typing...`
     }
   }
 
