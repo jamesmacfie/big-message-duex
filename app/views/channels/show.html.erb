@@ -132,7 +132,9 @@
   </div>
 
   <!-- Main content area -->
-  <div class="flex-1 flex">
+  <div class="flex-1 flex"
+       data-controller="thread"
+       data-thread-channel-id-value="<%= @channel.id %>">
     <div class="flex-1 flex flex-col"
          data-controller="messages"
          data-messages-channel-id-value="<%= @channel.id %>"
@@ -266,10 +268,7 @@
     </div>
 
     <!-- Thread panel (initially hidden, populated by Stimulus) -->
-    <div id="thread-panel"
-         class="w-96 hidden"
-         data-controller="thread"
-         data-thread-channel-id-value="<%= @channel.id %>">
+    <div id="thread-panel" class="w-96 hidden">
     </div>
   </div>
 </div>

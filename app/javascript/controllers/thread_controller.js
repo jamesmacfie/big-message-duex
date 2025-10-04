@@ -2,15 +2,15 @@ import { Controller } from "@hotwired/stimulus"
 import consumer from "channels/consumer"
 
 export default class extends Controller {
-  static targets = ["panel", "messagesList", "parentMessage", "repliesList", "form"]
+  static targets = ["panel"]
   static values = {
     messageId: Number,
     channelId: Number
   }
 
   connect() {
-    this.element.classList.add("hidden")
     this.currentMessageId = null
+    this.threadPanel = document.getElementById('thread-panel')
 
     // Subscribe to thread updates for auto-scroll
     this.setupThreadSubscription()
@@ -47,14 +47,14 @@ export default class extends Controller {
     fetch(`/channels/${channelId}/messages/${messageId}/thread`)
       .then(response => response.text())
       .then(html => {
-        this.element.innerHTML = html
-        this.element.classList.remove("hidden")
+        this.threadPanel.innerHTML = html
+        this.threadPanel.classList.remove("hidden")
 
         // Scroll to bottom after opening
         setTimeout(() => this.scrollThreadToBottom(), 100)
 
         // Start observing for new replies
-        const repliesContainer = this.element.querySelector('.overflow-y-auto')
+        const repliesContainer = this.threadPanel.querySelector('.overflow-y-auto')
         if (repliesContainer && this.threadObserver) {
           this.threadObserver.observe(repliesContainer, {
             childList: true,
@@ -75,8 +75,8 @@ export default class extends Controller {
       this.setupThreadSubscription() // Reset for next use
     }
 
-    this.element.classList.add("hidden")
-    this.element.innerHTML = ""
+    this.threadPanel.classList.add("hidden")
+    this.threadPanel.innerHTML = ""
     this.currentMessageId = null
   }
 
@@ -87,7 +87,7 @@ export default class extends Controller {
   }
 
   scrollThreadToBottom() {
-    const repliesContainer = this.element.querySelector('.overflow-y-auto')
+    const repliesContainer = this.threadPanel.querySelector('.overflow-y-auto')
     if (repliesContainer) {
       repliesContainer.scrollTop = repliesContainer.scrollHeight
     }
