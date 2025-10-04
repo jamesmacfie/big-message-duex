@@ -3,6 +3,7 @@ class Channel < ApplicationRecord
   has_many :members, dependent: :destroy
   has_many :people, through: :members
   has_many :messages, dependent: :destroy
+  has_many :favorites, dependent: :destroy
 
   # Validations
   validates :name, presence: true, if: :channel?

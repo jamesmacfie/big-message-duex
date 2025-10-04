@@ -6,6 +6,8 @@ class Person < ApplicationRecord
   has_many :created_channels, class_name: "Channel", foreign_key: :created_by_id
   has_many :messages, dependent: :destroy
   has_many :sent_invites, class_name: "Invite", foreign_key: :invited_by_id, dependent: :destroy
+  has_many :favorites, dependent: :destroy
+  has_many :favorited_channels, through: :favorites, source: :channel
 
   # Validations
   validates :name, presence: true
