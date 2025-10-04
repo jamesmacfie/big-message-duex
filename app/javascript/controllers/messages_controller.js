@@ -92,8 +92,21 @@ export default class extends Controller {
 
   resetForm(event) {
     // Reset form after successful submission
-    if (this.hasInputTarget && this.hasFormTarget) {
-      this.inputTarget.value = ''
+    if (event.detail.success !== false) {
+      if (this.hasInputTarget && this.hasFormTarget) {
+        this.inputTarget.value = ''
+        this.inputTarget.focus()
+      }
+    }
+  }
+
+  handleKeydown(event) {
+    // Submit on Cmd+Enter or Ctrl+Enter
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+      event.preventDefault()
+      if (this.hasFormTarget) {
+        this.formTarget.requestSubmit()
+      }
     }
   }
 }

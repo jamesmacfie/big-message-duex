@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import consumer from "channels/consumer"
 
 export default class extends Controller {
-  static targets = ["panel", "replyInput"]
+  static targets = ["panel", "replyInput", "replyForm"]
   static values = {
     messageId: Number,
     channelId: Number
@@ -104,9 +104,20 @@ export default class extends Controller {
     if (event.detail.success !== false) {
       if (this.hasReplyInputTarget) {
         this.replyInputTarget.value = ''
+        this.replyInputTarget.focus()
       }
       // Scroll to bottom after adding reply
       setTimeout(() => this.scrollThreadToBottom(), 100)
+    }
+  }
+
+  handleKeydown(event) {
+    // Submit on Cmd+Enter or Ctrl+Enter
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+      event.preventDefault()
+      if (this.hasReplyFormTarget) {
+        this.replyFormTarget.requestSubmit()
+      }
     }
   }
 }
