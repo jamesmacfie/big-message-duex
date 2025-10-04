@@ -61,13 +61,19 @@ export default class extends Controller {
   }
 
   updateThreadIndicator(messageId) {
-    // Reload the parent message to update thread indicators
-    // This is a simple approach - could be optimized with targeted updates
-    const messageElement = document.getElementById(`message-${messageId}`)
-    if (messageElement) {
-      // For now, we'll just reload the message via fetch
-      // In a more complex implementation, you'd update just the indicator
-    }
+    // Fetch and update the thread indicator for the parent message
+    const indicatorElement = document.getElementById(`thread-indicator-${messageId}`)
+    if (!indicatorElement) return
+
+    const channelId = this.channelIdValue
+    fetch(`/channels/${channelId}/messages/${messageId}/thread_indicator`)
+      .then(response => response.text())
+      .then(html => {
+        indicatorElement.outerHTML = html
+      })
+      .catch(error => {
+        console.error('Error updating thread indicator:', error)
+      })
   }
 
   scrollToBottom() {

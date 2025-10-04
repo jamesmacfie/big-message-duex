@@ -55,13 +55,30 @@
             <% dms.each do |dm| %>
               <%= link_to dm, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors #{@channel&.id == dm.id ? 'bg-indigo-800' : ''}" do %>
                 <div class="flex items-center">
-                  <% other_person = dm.people.where.not(id: current_user.person.id).first %>
-                  <% if other_person&.avatar&.attached? %>
-                    <%= image_tag other_person.avatar, class: "h-5 w-5 rounded-full object-cover mr-2" %>
-                  <% else %>
-                    <div class="h-5 w-5 rounded-full bg-indigo-700 flex items-center justify-center mr-2">
-                      <span class="text-xs font-medium"><%= dm.dm_name_for(current_user.person)[0].upcase %></span>
+                  <% other_people = dm.people.where.not(id: current_user.person.id).limit(3) %>
+                  <% if other_people.count > 1 %>
+                    <!-- Group DM - show multiple avatars -->
+                    <div class="flex -space-x-2 mr-2">
+                      <% other_people.each do |person| %>
+                        <% if person.avatar.attached? %>
+                          <%= image_tag person.avatar, class: "inline-block h-5 w-5 rounded-full ring-2 ring-indigo-900 object-cover" %>
+                        <% else %>
+                          <div class="inline-flex h-5 w-5 rounded-full bg-indigo-700 ring-2 ring-indigo-900 items-center justify-center">
+                            <span class="text-xs font-medium"><%= person.name[0].upcase %></span>
+                          </div>
+                        <% end %>
+                      <% end %>
                     </div>
+                  <% else %>
+                    <!-- 1-on-1 DM - single avatar -->
+                    <% person = other_people.first %>
+                    <% if person&.avatar&.attached? %>
+                      <%= image_tag person.avatar, class: "h-5 w-5 rounded-full object-cover mr-2" %>
+                    <% else %>
+                      <div class="h-5 w-5 rounded-full bg-indigo-700 flex items-center justify-center mr-2">
+                        <span class="text-xs font-medium"><%= dm.dm_name_for(current_user.person)[0].upcase %></span>
+                      </div>
+                    <% end %>
                   <% end %>
                   <span class="truncate"><%= dm.dm_name_for(current_user.person) %></span>
                 </div>

@@ -1,6 +1,6 @@
 class Message < ApplicationRecord
   belongs_to :person
-  belongs_to :channel
+  belongs_to :channel, touch: true
   belongs_to :parent_message, class_name: "Message", optional: true
   has_many :replies, class_name: "Message", foreign_key: :parent_message_id, dependent: :destroy
 
@@ -36,5 +36,15 @@ class Message < ApplicationRecord
 
   def latest_reply
     replies.order(created_at: :desc).first
+  end
+
+  def latest_reply_snippet(length: 50)
+    return nil unless latest_reply
+    content = latest_reply.content.to_s.gsub(/\s+/, ' ').strip
+    content.length > length ? "#{content[0...length]}..." : content
+  end
+
+  def replier_people(limit: 5)
+    replies.includes(:person).order(created_at: :desc).limit(limit).map(&:person).uniq
   end
 end

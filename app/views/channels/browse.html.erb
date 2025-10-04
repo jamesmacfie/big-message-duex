@@ -16,13 +16,30 @@
           <%= link_to "Create Channel", new_channel_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700" %>
         </div>
       </div>
+
+      <!-- Search bar -->
+      <div class="mt-6">
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input type="text"
+                 id="channel-search"
+                 placeholder="Search channels by name or description..."
+                 class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        </div>
+      </div>
     </div>
 
     <!-- Channels Grid -->
     <% if @all_channels.any? %>
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div id="channels-grid" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <% @all_channels.each do |channel| %>
-          <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+          <div class="channel-card bg-white shadow rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+               data-channel-name="<%= channel.name.downcase %>"
+               data-channel-description="<%= channel.description.to_s.downcase %>">
             <div class="p-6">
               <div class="flex items-center justify-between mb-3">
                 <h3 class="text-lg font-semibold text-gray-900 flex items-center">
@@ -95,5 +112,52 @@
         </div>
       </div>
     <% end %>
+
+    <!-- No results message -->
+    <div id="no-results" class="hidden text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No channels found</h3>
+      <p class="mt-1 text-sm text-gray-500">Try adjusting your search terms.</p>
+    </div>
   </div>
 </div>
+
+<script>
+  // Channel search functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('channel-search');
+    const channelCards = document.querySelectorAll('.channel-card');
+    const noResults = document.getElementById('no-results');
+    const channelsGrid = document.getElementById('channels-grid');
+
+    if (searchInput && channelCards.length > 0) {
+      searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        let visibleCount = 0;
+
+        channelCards.forEach(function(card) {
+          const name = card.dataset.channelName || '';
+          const description = card.dataset.channelDescription || '';
+
+          if (searchTerm === '' || name.includes(searchTerm) || description.includes(searchTerm)) {
+            card.style.display = '';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Show/hide no results message
+        if (visibleCount === 0 && searchTerm !== '') {
+          if (noResults) noResults.classList.remove('hidden');
+          if (channelsGrid) channelsGrid.classList.add('hidden');
+        } else {
+          if (noResults) noResults.classList.add('hidden');
+          if (channelsGrid) channelsGrid.classList.remove('hidden');
+        }
+      });
+    }
+  });
+</script>

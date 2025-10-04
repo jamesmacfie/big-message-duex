@@ -25,6 +25,7 @@ Rails.application.routes.draw do
     resources :messages, only: [ :create ] do
       member do
         get :thread
+        get :thread_indicator
       end
     end
     resources :members, only: [ :index, :create, :update, :destroy ]

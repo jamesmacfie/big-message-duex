@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import consumer from "channels/consumer"
 
 export default class extends Controller {
   static targets = ["panel", "messagesList", "parentMessage", "repliesList", "form"]
@@ -9,30 +10,92 @@ export default class extends Controller {
 
   connect() {
     this.element.classList.add("hidden")
+    this.currentMessageId = null
+
+    // Subscribe to thread updates for auto-scroll
+    this.setupThreadSubscription()
+  }
+
+  disconnect() {
+    if (this.threadObserver) {
+      this.threadObserver.disconnect()
+    }
+  }
+
+  setupThreadSubscription() {
+    // Set up a MutationObserver to detect new replies being added
+    this.threadObserver = new MutationObserver((mutations) => {
+      // Check if we should auto-scroll (only if currently scrolled near bottom)
+      const repliesContainer = this.element.querySelector('.overflow-y-auto')
+      if (repliesContainer && this.shouldAutoScroll(repliesContainer)) {
+        setTimeout(() => this.scrollThreadToBottom(), 100)
+      }
+    })
   }
 
   open(event) {
     event.preventDefault()
+
+    // Close any previously open thread panel
+    this.close(new Event('click'))
+
     const messageId = event.currentTarget.dataset.messageId
     const channelId = this.channelIdValue
-    
+    this.currentMessageId = messageId
+
     // Fetch thread data
     fetch(`/channels/${channelId}/messages/${messageId}/thread`)
       .then(response => response.text())
       .then(html => {
         this.element.innerHTML = html
         this.element.classList.remove("hidden")
+
+        // Scroll to bottom after opening
+        setTimeout(() => this.scrollThreadToBottom(), 100)
+
+        // Start observing for new replies
+        const repliesContainer = this.element.querySelector('.overflow-y-auto')
+        if (repliesContainer && this.threadObserver) {
+          this.threadObserver.observe(repliesContainer, {
+            childList: true,
+            subtree: true
+          })
+        }
       })
   }
 
   close(event) {
-    event.preventDefault()
+    if (event) {
+      event.preventDefault()
+    }
+
+    // Stop observing
+    if (this.threadObserver) {
+      this.threadObserver.disconnect()
+      this.setupThreadSubscription() // Reset for next use
+    }
+
     this.element.classList.add("hidden")
     this.element.innerHTML = ""
+    this.currentMessageId = null
+  }
+
+  shouldAutoScroll(container) {
+    // Auto-scroll if user is within 100px of the bottom
+    const threshold = 100
+    return (container.scrollHeight - container.scrollTop - container.clientHeight) < threshold
+  }
+
+  scrollThreadToBottom() {
+    const repliesContainer = this.element.querySelector('.overflow-y-auto')
+    if (repliesContainer) {
+      repliesContainer.scrollTop = repliesContainer.scrollHeight
+    }
   }
 
   submitReply(event) {
     // Form submission is handled by Turbo
-    // This method can be used for additional client-side logic if needed
+    // Auto-scroll after reply submission
+    setTimeout(() => this.scrollThreadToBottom(), 100)
   }
 }

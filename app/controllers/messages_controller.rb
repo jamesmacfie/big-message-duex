@@ -3,7 +3,7 @@ class MessagesController < ApplicationController
   before_action :require_confirmed_email
   before_action :set_channel
   before_action :authorize_channel_access
-  before_action :set_message, only: [:thread]
+  before_action :set_message, only: [:thread, :thread_indicator]
 
   def create
     @message = @channel.messages.build(message_params)
@@ -55,6 +55,12 @@ class MessagesController < ApplicationController
 
     respond_to do |format|
       format.html { render partial: "messages/thread_panel", locals: { message: @message, replies: @replies, reply: @reply, channel: @channel } }
+    end
+  end
+
+  def thread_indicator
+    respond_to do |format|
+      format.html { render partial: "messages/thread_indicator", locals: { message: @message } }
     end
   end
 

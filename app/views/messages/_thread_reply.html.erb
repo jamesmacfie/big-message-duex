@@ -11,8 +11,8 @@
       <p class="text-sm font-semibold text-gray-900"><%= reply.person.name %></p>
       <p class="text-xs text-gray-500"><%= reply.created_at.strftime("%l:%M %p") %></p>
     </div>
-    <div class="mt-1 text-sm text-gray-700">
-      <%= simple_format(reply.content, class: "whitespace-pre-wrap") %>
+    <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none">
+      <%= markdown(reply.content) %>
     </div>
   </div>
 </div>

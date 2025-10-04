@@ -6,6 +6,7 @@ class Channel < ApplicationRecord
 
   # Validations
   validates :name, presence: true, if: :channel?
+  validates :name, uniqueness: { scope: :channel_type, conditions: -> { where(channel_type: "channel") } }, if: :channel?
   validates :channel_type, inclusion: { in: %w[channel dm] }
 
   # Scopes
