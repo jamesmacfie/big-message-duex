@@ -17,6 +17,14 @@ Rails.application.configure do
   # Enable server timing.
   config.server_timing = true
 
+  # Action Cable configuration for WebSocket connections
+  config.action_cable.allowed_request_origins = [
+    "http://localhost:3000",
+    /http:\/\/localhost:\d+/,
+    "http://127.0.0.1:3000",
+    /http:\/\/127\.0\.0\.1:\d+/
+  ]
+
   # Enable/disable caching. By default caching is disabled.
   # Run rails dev:cache to toggle caching.
   if Rails.root.join("tmp/caching-dev.txt").exist?
@@ -42,6 +50,8 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
 
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  config.action_mailer.delivery_method = :letter_opener
+  config.action_mailer.perform_deliveries = true
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

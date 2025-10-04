@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h1 style="color: #4F46E5;">You're invited to join Big Message!</h1>
+
+      <p>Hi there,</p>
+
+      <p><strong><%= @inviter.name %></strong> has invited you to join Big Message, a real-time messaging platform.</p>
+
+      <p>Click the button below to accept the invitation and create your account:</p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="<%= @signup_url %>" style="background-color: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Accept Invitation</a>
+      </div>
+
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="background-color: #f3f4f6; padding: 10px; border-radius: 5px; word-break: break-all;"><%= @signup_url %></p>
+
+      <p style="margin-top: 30px; font-size: 12px; color: #6B7280;">
+        This invitation was sent to <%= @invite.email %>. If you weren't expecting this invitation, you can safely ignore this email.
+      </p>
+    </div>
+  </body>
+</html>

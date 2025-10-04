@@ -1,0 +1,11 @@
+Welcome to Big Message!
+
+Hi <%= @user.person&.name || @user.email.split('@').first %>,
+
+Thanks for signing up! Please confirm your email address to activate your account.
+
+Click the link below to confirm:
+
+<%= @confirmation_url %>
+
+This email was sent to <%= @user.email %>. If you didn't sign up for Big Message, you can safely ignore this email.

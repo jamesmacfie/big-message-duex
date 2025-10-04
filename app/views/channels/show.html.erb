@@ -1,0 +1,189 @@
+<div class="flex h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <div class="w-64 bg-indigo-900 text-white flex flex-col">
+    <!-- Workspace header -->
+    <div class="p-4 border-b border-indigo-800">
+      <h1 class="text-xl font-bold">Big Message</h1>
+      <p class="text-sm text-indigo-300"><%= current_user.person.name %></p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- Channels Section -->
+      <div class="mt-4">
+        <div class="px-4 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-indigo-300">Channels</h2>
+          <%= link_to new_channel_path, class: "text-indigo-300 hover:text-white" do %>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          <% end %>
+        </div>
+
+        <div class="mt-2">
+          <% current_user.person.accessible_channels.channels.order(:name).each do |channel| %>
+            <%= link_to channel, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors #{@channel.id == channel.id ? 'bg-indigo-800' : ''}" do %>
+              <div class="flex items-center">
+                <span class="text-gray-400 mr-2">#</span>
+                <span><%= channel.name %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Direct Messages Section -->
+      <div class="mt-6">
+        <div class="px-4">
+          <h2 class="text-sm font-semibold text-indigo-300">Direct Messages</h2>
+        </div>
+        <div class="mt-2">
+          <p class="px-4 py-2 text-sm text-indigo-400">Coming soon...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite button -->
+    <div class="px-4 pb-4">
+      <%= link_to new_invite_path, class: "w-full inline-flex items-center justify-center px-4 py-2 border border-indigo-700 text-sm font-medium rounded-md text-indigo-200 bg-indigo-800 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+        </svg>
+        Invite People
+      <% end %>
+    </div>
+
+    <!-- User menu -->
+    <div class="p-4 border-t border-indigo-800">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <% if current_user.person.avatar.attached? %>
+            <%= image_tag current_user.person.avatar, class: "h-8 w-8 rounded-full object-cover" %>
+          <% else %>
+            <div class="h-8 w-8 rounded-full bg-indigo-700 flex items-center justify-center">
+              <span class="text-sm font-medium"><%= current_user.person.name[0].upcase %></span>
+            </div>
+          <% end %>
+          <span class="text-sm"><%= current_user.person.name %></span>
+        </div>
+        <div class="flex space-x-2">
+          <%= link_to edit_settings_path, class: "text-indigo-300 hover:text-white" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          <% end %>
+          <%= button_to logout_path, method: :delete, class: "text-indigo-300 hover:text-white" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content area -->
+  <div class="flex-1 flex flex-col"
+       data-controller="messages"
+       data-messages-channel-id-value="<%= @channel.id %>"
+       data-messages-current-person-id-value="<%= current_user.person.id %>">
+    <!-- Channel header -->
+    <div class="bg-white border-b border-gray-200 px-6 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <h2 class="text-xl font-bold text-gray-900 flex items-center">
+            <span class="text-gray-500 mr-2">#</span>
+            <%= @channel.name %>
+          </h2>
+          <% if @channel.is_private %>
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          <% end %>
+        </div>
+        <div class="flex items-center space-x-4">
+          <span class="text-sm text-gray-500">
+            <%= pluralize(@channel.members.count, 'member') %>
+          </span>
+        </div>
+      </div>
+      <% if @channel.description.present? %>
+        <p class="text-sm text-gray-600 mt-1"><%= @channel.description %></p>
+      <% end %>
+    </div>
+
+    <!-- Messages area -->
+    <div class="flex-1 overflow-y-auto px-6 py-4 bg-white">
+      <% if @messages.empty? %>
+        <div class="flex items-center justify-center h-full">
+          <div class="text-center max-w-md">
+            <div class="mb-4">
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100">
+                <span class="text-2xl text-indigo-600">#</span>
+              </div>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">
+              Welcome to #<%= @channel.name %>
+            </h3>
+            <p class="text-gray-600 mb-4">
+              <% if @channel.description.present? %>
+                <%= @channel.description %>
+              <% else %>
+                This is the beginning of the #<%= @channel.name %> channel.
+              <% end %>
+            </p>
+            <div class="text-sm text-gray-500">
+              <p>Created by <%= @channel.created_by.name %> on <%= @channel.created_at.strftime("%B %d, %Y") %></p>
+              <% if @channel.members.count > 1 %>
+                <p class="mt-2">
+                  Members:
+                  <%= @channel.members.includes(:person).map { |m| m.person.name }.join(", ") %>
+                </p>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% else %>
+        <!-- Channel start message -->
+        <div class="mb-8 pb-6 border-b border-gray-200">
+          <div class="text-center max-w-md mx-auto">
+            <div class="mb-3">
+              <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100">
+                <span class="text-xl text-indigo-600">#</span>
+              </div>
+            </div>
+            <h3 class="text-base font-semibold text-gray-900 mb-1">
+              Welcome to #<%= @channel.name %>
+            </h3>
+            <p class="text-sm text-gray-500">
+              Created by <%= @channel.created_by.name %> on <%= @channel.created_at.strftime("%B %d, %Y") %>
+            </p>
+          </div>
+        </div>
+
+        <!-- Messages list -->
+        <div id="messages" class="space-y-4" data-messages-target="container">
+          <%= render @messages %>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Message input -->
+    <div class="bg-white border-t border-gray-200 px-6 py-4">
+      <%= form_with model: [@channel, @message],
+                    class: "flex items-start space-x-3",
+                    data: { messages_target: "form", action: "turbo:submit-end->messages#resetForm" } do |f| %>
+        <div class="flex-1">
+          <%= f.text_area :content,
+              rows: 1,
+              placeholder: "Message ##{@channel.name}",
+              class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
+              data: { messages_target: "input" },
+              required: true %>
+        </div>
+        <%= f.submit "Send", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
+      <% end %>
+    </div>
+  </div>
+</div>

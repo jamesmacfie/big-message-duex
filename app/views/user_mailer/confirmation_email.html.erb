@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta content='text/html; charset=UTF-8' http-equiv='Content-Type' />
+  </head>
+  <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+      <h1 style="color: #4F46E5;">Welcome to Big Message!</h1>
+
+      <p>Hi <%= @user.person&.name || @user.email.split('@').first %>,</p>
+
+      <p>Thanks for signing up! Please confirm your email address to activate your account.</p>
+
+      <div style="text-align: center; margin: 30px 0;">
+        <a href="<%= @confirmation_url %>" style="background-color: #4F46E5; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">Confirm Email Address</a>
+      </div>
+
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="background-color: #f3f4f6; padding: 10px; border-radius: 5px; word-break: break-all;"><%= @confirmation_url %></p>
+
+      <p style="margin-top: 30px; font-size: 12px; color: #6B7280;">
+        This email was sent to <%= @user.email %>. If you didn't sign up for Big Message, you can safely ignore this email.
+      </p>
+    </div>
+  </body>
+</html>

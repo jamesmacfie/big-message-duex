@@ -1,0 +1,105 @@
+<div class="flex h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <div class="w-64 bg-indigo-900 text-white flex flex-col">
+    <!-- Workspace header -->
+    <div class="p-4 border-b border-indigo-800">
+      <h1 class="text-xl font-bold">Big Message</h1>
+      <p class="text-sm text-indigo-300"><%= current_user.person.name %></p>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- Channels Section -->
+      <div class="mt-4">
+        <div class="px-4 flex items-center justify-between">
+          <h2 class="text-sm font-semibold text-indigo-300">Channels</h2>
+          <%= link_to new_channel_path, class: "text-indigo-300 hover:text-white" do %>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          <% end %>
+        </div>
+
+        <div class="mt-2">
+          <% if @channels.any? %>
+            <% @channels.each do |channel| %>
+              <%= link_to channel, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors" do %>
+                <div class="flex items-center">
+                  <span class="text-gray-400 mr-2">#</span>
+                  <span><%= channel.name %></span>
+                </div>
+              <% end %>
+            <% end %>
+          <% else %>
+            <p class="px-4 py-2 text-sm text-indigo-400">No channels yet</p>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Direct Messages Section -->
+      <div class="mt-6">
+        <div class="px-4">
+          <h2 class="text-sm font-semibold text-indigo-300">Direct Messages</h2>
+        </div>
+        <div class="mt-2">
+          <p class="px-4 py-2 text-sm text-indigo-400">Coming soon...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invite button -->
+    <div class="px-4 pb-4">
+      <%= link_to new_invite_path, class: "w-full inline-flex items-center justify-center px-4 py-2 border border-indigo-700 text-sm font-medium rounded-md text-indigo-200 bg-indigo-800 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" do %>
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+        </svg>
+        Invite People
+      <% end %>
+    </div>
+
+    <!-- User menu -->
+    <div class="p-4 border-t border-indigo-800">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <% if current_user.person.avatar.attached? %>
+            <%= image_tag current_user.person.avatar, class: "h-8 w-8 rounded-full object-cover" %>
+          <% else %>
+            <div class="h-8 w-8 rounded-full bg-indigo-700 flex items-center justify-center">
+              <span class="text-sm font-medium"><%= current_user.person.name[0].upcase %></span>
+            </div>
+          <% end %>
+          <span class="text-sm"><%= current_user.person.name %></span>
+        </div>
+        <div class="flex space-x-2">
+          <%= link_to edit_settings_path, class: "text-indigo-300 hover:text-white" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+          <% end %>
+          <%= button_to logout_path, method: :delete, class: "text-indigo-300 hover:text-white" do %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+            </svg>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content area -->
+  <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex items-center justify-center">
+      <div class="text-center">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+        </svg>
+        <h3 class="mt-2 text-sm font-medium text-gray-900">Welcome to Big Message</h3>
+        <p class="mt-1 text-sm text-gray-500">Select a channel from the sidebar or create a new one to get started.</p>
+        <div class="mt-6">
+          <%= link_to "Create Channel", new_channel_path, class: "inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

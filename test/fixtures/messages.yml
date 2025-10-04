@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  person: one
+  channel: one
+  content: MyText
+  edited_at: 2025-10-04 18:11:35
+
+two:
+  person: two
+  channel: two
+  content: MyText
+  edited_at: 2025-10-04 18:11:35

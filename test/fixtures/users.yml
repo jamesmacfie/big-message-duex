@@ -1,19 +1,19 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  email: MyString
-  password_digest: MyString
+  email: user1@example.com
+  password_digest: <%= BCrypt::Password.create('password123', cost: 4) %>
   email_confirmed_at: 2025-10-04 17:16:21
-  email_confirmation_token: MyString
+  email_confirmation_token: token1
   email_confirmation_sent_at: 2025-10-04 17:16:21
-  reset_password_token: MyString
-  reset_password_sent_at: 2025-10-04 17:16:21
+  reset_password_token: null
+  reset_password_sent_at: null
 
 two:
-  email: MyString
-  password_digest: MyString
+  email: user2@example.com
+  password_digest: <%= BCrypt::Password.create('password123', cost: 4) %>
   email_confirmed_at: 2025-10-04 17:16:21
-  email_confirmation_token: MyString
+  email_confirmation_token: token2
   email_confirmation_sent_at: 2025-10-04 17:16:21
-  reset_password_token: MyString
-  reset_password_sent_at: 2025-10-04 17:16:21
+  reset_password_token: null
+  reset_password_sent_at: null

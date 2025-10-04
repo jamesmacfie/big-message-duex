@@ -1,4 +1,4 @@
-.PHONY: help setup install db-create db-migrate db-seed db-reset db-setup console server test docker-up docker-down docker-logs clean generate-model generate-controller generate-migration rails
+''.PHONY: help setup install db-create db-migrate db-seed db-reset db-setup console server test docker-up docker-down docker-logs clean generate-model generate-controller generate-migration rails
 
 # Default shell
 SHELL := /bin/bash

@@ -1,0 +1,25 @@
+<div class="flex space-x-3 hover:bg-gray-50 -mx-4 px-4 py-2 rounded" data-message-id="<%= message.id %>">
+  <div class="flex-shrink-0">
+    <% if message.person.avatar.attached? %>
+      <%= image_tag message.person.avatar, class: "h-10 w-10 rounded object-cover" %>
+    <% else %>
+      <div class="h-10 w-10 rounded bg-indigo-600 flex items-center justify-center">
+        <span class="text-sm font-medium text-white"><%= message.person.name[0].upcase %></span>
+      </div>
+    <% end %>
+  </div>
+  <div class="flex-1 min-w-0">
+    <div class="flex items-baseline space-x-2">
+      <span class="font-semibold text-gray-900 text-sm"><%= message.person.name %></span>
+      <span class="text-xs text-gray-500">
+        <%= message.created_at.strftime("%l:%M %p") %>
+      </span>
+      <% if message.edited? %>
+        <span class="text-xs text-gray-400">(edited)</span>
+      <% end %>
+    </div>
+    <div class="mt-1 text-sm text-gray-900 whitespace-pre-wrap break-words">
+      <%= message.content %>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  email: invite1@example.com
+  token: unique_token_1
+  invited_by: one
+  accepted_at: null
+  archived_at: null
+
+two:
+  email: invite2@example.com
+  token: unique_token_2
+  invited_by: one
+  accepted_at: 2025-10-04 18:54:48
+  archived_at: null

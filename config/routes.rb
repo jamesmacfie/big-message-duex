@@ -14,6 +14,14 @@ Rails.application.routes.draw do
   # Settings
   resource :settings, only: [ :edit, :update ]
 
+  # Invites
+  resources :invites, only: [ :new, :create ]
+
+  # Channels
+  resources :channels, only: [ :index, :new, :create, :show ] do
+    resources :messages, only: [ :create ]
+  end
+
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
@@ -23,5 +31,5 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
   # Defines the root path route ("/")
-  root "sessions#new"
+  root "channels#index"
 end
