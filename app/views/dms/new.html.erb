@@ -1,0 +1,53 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-md w-full">
+    <div class="bg-white shadow sm:rounded-lg">
+      <div class="px-4 py-5 sm:p-6">
+        <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
+          New Direct Message
+        </h3>
+
+        <%= form_with url: dms_path, class: "space-y-6" do |f| %>
+          <div>
+            <%= label_tag :person_ids, "Select people to message", class: "block text-sm font-medium text-gray-700 mb-2" %>
+            
+            <div class="border border-gray-300 rounded-md p-3 max-h-96 overflow-y-auto">
+              <% @people.each do |person| %>
+                <div class="flex items-center py-2 hover:bg-gray-50 px-2 rounded">
+                  <%= check_box_tag "person_ids[]", person.id, false, 
+                      id: "person_#{person.id}",
+                      class: "h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" %>
+                  <%= label_tag "person_#{person.id}", class: "ml-3 flex items-center cursor-pointer flex-1" do %>
+                    <% if person.avatar.attached? %>
+                      <%= image_tag person.avatar, class: "h-8 w-8 rounded-full object-cover" %>
+                    <% else %>
+                      <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <span class="text-sm font-medium text-indigo-600"><%= person.name[0].upcase %></span>
+                      </div>
+                    <% end %>
+                    <div class="ml-3">
+                      <p class="text-sm font-medium text-gray-900"><%= person.name %></p>
+                      <% if person.user %>
+                        <p class="text-xs text-gray-500"><%= person.user.email %></p>
+                      <% elsif person.is_agent %>
+                        <p class="text-xs text-gray-500">AI Agent</p>
+                      <% end %>
+                    </div>
+                  <% end %>
+                </div>
+              <% end %>
+            </div>
+            
+            <p class="mt-2 text-sm text-gray-500">
+              You can select multiple people to create a group DM.
+            </p>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <%= link_to "Cancel", channels_path, class: "bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" %>
+            <%= f.submit "Start Conversation", class: "inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

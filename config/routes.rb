@@ -17,6 +17,9 @@ Rails.application.routes.draw do
   # Invites
   resources :invites, only: [ :new, :create ]
 
+  # Direct Messages
+  resources :dms, only: [ :new, :create ]
+
   # Channels
   resources :channels, only: [ :index, :new, :create, :show, :edit, :update ] do
     resources :messages, only: [ :create ]

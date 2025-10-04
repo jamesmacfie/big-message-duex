@@ -41,11 +41,35 @@
 
       <!-- Direct Messages Section -->
       <div class="mt-6">
-        <div class="px-4">
+        <div class="px-4 flex items-center justify-between">
           <h2 class="text-sm font-semibold text-indigo-300">Direct Messages</h2>
+          <%= link_to new_dm_path, class: "text-indigo-300 hover:text-white", title: "New DM" do %>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+          <% end %>
         </div>
         <div class="mt-2">
-          <p class="px-4 py-2 text-sm text-indigo-400">Coming soon...</p>
+          <% dms = current_user.person.accessible_channels.dms.active.includes(:people).order("channels.updated_at DESC") %>
+          <% if dms.any? %>
+            <% dms.each do |dm| %>
+              <%= link_to dm, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors #{@channel&.id == dm.id ? 'bg-indigo-800' : ''}" do %>
+                <div class="flex items-center">
+                  <% other_person = dm.people.where.not(id: current_user.person.id).first %>
+                  <% if other_person&.avatar&.attached? %>
+                    <%= image_tag other_person.avatar, class: "h-5 w-5 rounded-full object-cover mr-2" %>
+                  <% else %>
+                    <div class="h-5 w-5 rounded-full bg-indigo-700 flex items-center justify-center mr-2">
+                      <span class="text-xs font-medium"><%= dm.dm_name_for(current_user.person)[0].upcase %></span>
+                    </div>
+                  <% end %>
+                  <span class="truncate"><%= dm.dm_name_for(current_user.person) %></span>
+                </div>
+              <% end %>
+            <% end %>
+          <% else %>
+            <p class="px-4 py-2 text-sm text-indigo-400">No direct messages yet</p>
+          <% end %>
         </div>
       </div>
     </div>
@@ -100,8 +124,13 @@
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-3">
           <h2 class="text-xl font-bold text-gray-900 flex items-center">
-            <span class="text-gray-500 mr-2">#</span>
-            <%= @channel.name %>
+            <% if @channel.dm? %>
+              <span class="text-gray-500 mr-2">@</span>
+              <%= @channel.dm_name_for(current_user.person) %>
+            <% else %>
+              <span class="text-gray-500 mr-2">#</span>
+              <%= @channel.name %>
+            <% end %>
           </h2>
           <% if @channel.is_private %>
             <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,7 +237,7 @@
         <div class="flex-1">
           <%= f.text_area :content,
               rows: 1,
-              placeholder: "Message ##{@channel.name}",
+              placeholder: @channel.dm? ? "Message #{@channel.dm_name_for(current_user.person)}" : "Message ##{@channel.name}",
               class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
               data: { messages_target: "input" },
               required: true %>
