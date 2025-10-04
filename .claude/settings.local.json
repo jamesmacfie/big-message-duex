@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rails new:*)",
+      "Bash(ruby --version)",
+      "Read(//usr/local/bin/**)",
+      "Read(//Users/jamesmacfie/.rubies/**)",
+      "Bash(export PATH=\"$HOME/.rubies/ruby-3.4.5/bin:$PATH\")",
+      "Bash(gem list:*)",
+      "Bash(~/.rubies/ruby-3.4.5/bin/gem install rails --version 7.2.2)",
+      "Bash(gem:*)",
+      "Bash(export PATH=\"$HOME/.gem/ruby/3.4.5/bin:$HOME/.rubies/ruby-3.4.5/bin:$PATH\")",
+      "Bash(bundle install:*)",
+      "Bash(rails:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
