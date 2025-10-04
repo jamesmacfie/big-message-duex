@@ -37,6 +37,7 @@ Rails.application.routes.draw do
       end
     end
     resources :members, only: [ :index, :create, :update, :destroy ]
+    resource :favorite, only: [ :create, :destroy ]
     collection do
       get :browse
     end

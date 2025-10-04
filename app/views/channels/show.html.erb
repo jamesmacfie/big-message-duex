@@ -9,6 +9,38 @@
 
     <!-- Navigation -->
     <div class="flex-1 overflow-y-auto">
+      <!-- Favorites Section -->
+      <% favorites = current_user.person.favorited_channels.active.includes(:people, :members).order(:name) %>
+      <% if favorites.any? %>
+        <div class="mt-4">
+          <div class="px-4">
+            <h2 class="text-sm font-semibold text-indigo-300">Favorites</h2>
+          </div>
+          <div class="mt-2">
+            <% favorites.each do |channel| %>
+              <% member = channel.members.find { |m| m.person_id == current_user.person.id } %>
+              <% unread_count = member&.unread_count || 0 %>
+              <%= link_to channel, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors #{@channel.id == channel.id ? 'bg-indigo-800' : ''}" do %>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center">
+                    <% if channel.dm? %>
+                      <span class="text-gray-400 mr-2">@</span>
+                      <span class="<%= unread_count > 0 ? 'font-bold' : '' %>"><%= channel.dm_name_for(current_user.person) %></span>
+                    <% else %>
+                      <span class="text-gray-400 mr-2">#</span>
+                      <span class="<%= unread_count > 0 ? 'font-bold' : '' %>"><%= channel.name %></span>
+                    <% end %>
+                  </div>
+                  <% if unread_count > 0 %>
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full"><%= unread_count %></span>
+                  <% end %>
+                </div>
+              <% end %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
       <!-- Channels Section -->
       <div class="mt-4">
         <div class="px-4 flex items-center justify-between">
@@ -28,11 +60,18 @@
         </div>
 
         <div class="mt-2">
-          <% current_user.person.accessible_channels.channels.active.order(:name).each do |channel| %>
+          <% current_user.person.accessible_channels.channels.active.includes(:members).order(:name).each do |channel| %>
+            <% member = channel.members.find { |m| m.person_id == current_user.person.id } %>
+            <% unread_count = member&.unread_count || 0 %>
             <%= link_to channel, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors #{@channel.id == channel.id ? 'bg-indigo-800' : ''}" do %>
-              <div class="flex items-center">
-                <span class="text-gray-400 mr-2">#</span>
-                <span><%= channel.name %></span>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <span class="text-gray-400 mr-2">#</span>
+                  <span class="<%= unread_count > 0 ? 'font-bold' : '' %>"><%= channel.name %></span>
+                </div>
+                <% if unread_count > 0 %>
+                  <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full"><%= unread_count %></span>
+                <% end %>
               </div>
             <% end %>
           <% end %>
@@ -50,37 +89,44 @@
           <% end %>
         </div>
         <div class="mt-2">
-          <% dms = current_user.person.accessible_channels.dms.active.includes(:people).order("channels.updated_at DESC") %>
+          <% dms = current_user.person.accessible_channels.dms.active.includes(:people, :members).order("channels.updated_at DESC") %>
           <% if dms.any? %>
             <% dms.each do |dm| %>
+              <% member = dm.members.find { |m| m.person_id == current_user.person.id } %>
+              <% unread_count = member&.unread_count || 0 %>
               <%= link_to dm, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors #{@channel&.id == dm.id ? 'bg-indigo-800' : ''}" do %>
-                <div class="flex items-center">
-                  <% other_people = dm.people.where.not(id: current_user.person.id).limit(3) %>
-                  <% if other_people.count > 1 %>
-                    <!-- Group DM - show multiple avatars -->
-                    <div class="flex -space-x-2 mr-2">
-                      <% other_people.each do |person| %>
-                        <% if person.avatar.attached? %>
-                          <%= image_tag person.avatar, class: "inline-block h-5 w-5 rounded-full ring-2 ring-indigo-900 object-cover" %>
-                        <% else %>
-                          <div class="inline-flex h-5 w-5 rounded-full bg-indigo-700 ring-2 ring-indigo-900 items-center justify-center">
-                            <span class="text-xs font-medium"><%= person.name[0].upcase %></span>
-                          </div>
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center flex-1 min-w-0">
+                    <% other_people = dm.people.where.not(id: current_user.person.id).limit(3) %>
+                    <% if other_people.count > 1 %>
+                      <!-- Group DM - show multiple avatars -->
+                      <div class="flex -space-x-2 mr-2 flex-shrink-0">
+                        <% other_people.each do |person| %>
+                          <% if person.avatar.attached? %>
+                            <%= image_tag person.avatar, class: "inline-block h-5 w-5 rounded-full ring-2 ring-indigo-900 object-cover" %>
+                          <% else %>
+                            <div class="inline-flex h-5 w-5 rounded-full bg-indigo-700 ring-2 ring-indigo-900 items-center justify-center">
+                              <span class="text-xs font-medium"><%= person.name[0].upcase %></span>
+                            </div>
+                          <% end %>
                         <% end %>
-                      <% end %>
-                    </div>
-                  <% else %>
-                    <!-- 1-on-1 DM - single avatar -->
-                    <% person = other_people.first %>
-                    <% if person&.avatar&.attached? %>
-                      <%= image_tag person.avatar, class: "h-5 w-5 rounded-full object-cover mr-2" %>
-                    <% else %>
-                      <div class="h-5 w-5 rounded-full bg-indigo-700 flex items-center justify-center mr-2">
-                        <span class="text-xs font-medium"><%= dm.dm_name_for(current_user.person)[0].upcase %></span>
                       </div>
+                    <% else %>
+                      <!-- 1-on-1 DM - single avatar -->
+                      <% person = other_people.first %>
+                      <% if person&.avatar&.attached? %>
+                        <%= image_tag person.avatar, class: "h-5 w-5 rounded-full object-cover mr-2 flex-shrink-0" %>
+                      <% else %>
+                        <div class="h-5 w-5 rounded-full bg-indigo-700 flex items-center justify-center mr-2 flex-shrink-0">
+                          <span class="text-xs font-medium"><%= dm.dm_name_for(current_user.person)[0].upcase %></span>
+                        </div>
+                      <% end %>
                     <% end %>
+                    <span class="truncate <%= unread_count > 0 ? 'font-bold' : '' %>"><%= dm.dm_name_for(current_user.person) %></span>
+                  </div>
+                  <% if unread_count > 0 %>
+                    <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full ml-2 flex-shrink-0"><%= unread_count %></span>
                   <% end %>
-                  <span class="truncate"><%= dm.dm_name_for(current_user.person) %></span>
                 </div>
               <% end %>
             <% end %>
@@ -167,6 +213,8 @@
           <%= link_to channel_members_path(@channel), class: "text-sm text-gray-500 hover:text-gray-700" do %>
             <%= pluralize(@channel.members.count, 'member') %>
           <% end %>
+
+          <%= render "favorites/button", channel: @channel %>
 
           <% if @current_member&.admin? %>
             <div class="relative" data-controller="dropdown">
