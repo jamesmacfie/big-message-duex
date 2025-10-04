@@ -1,10 +1,14 @@
 class User < ApplicationRecord
   has_secure_password
+  has_one :person, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: { case_sensitive: false },
             format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :password, length: { minimum: 8 }, if: -> { new_record? || password.present? }
+
+  # Callbacks
+  after_create :create_person_profile
 
   # Normalize email to lowercase before saving
   before_validation :normalize_email
@@ -47,5 +51,9 @@ class User < ApplicationRecord
 
   def normalize_email
     self.email = email.to_s.downcase.strip
+  end
+
+  def create_person_profile
+    create_person!(name: email.split("@").first.titleize, is_agent: false)
   end
 end

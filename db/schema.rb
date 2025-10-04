@@ -10,9 +10,22 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_04_041621) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_04_042343) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "people", force: :cascade do |t|
+    t.bigint "user_id"
+    t.string "name", null: false
+    t.text "description"
+    t.boolean "is_agent", default: false, null: false
+    t.text "agent_prompt"
+    t.string "theme", default: "light"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_agent"], name: "index_people_on_is_agent"
+    t.index ["user_id"], name: "index_people_on_user_id"
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "email", null: false
@@ -28,4 +41,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_041621) do
     t.index ["email_confirmation_token"], name: "index_users_on_email_confirmation_token", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
+
+  add_foreign_key "people", "users"
 end

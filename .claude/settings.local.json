@@ -14,7 +14,9 @@
       "Bash(rails:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(make generate-controller:*)"
+      "Bash(make generate-controller:*)",
+      "Bash(make generate-model:*)",
+      "Bash(make:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,17 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  user: one
+  name: MyString
+  description: MyText
+  is_agent: false
+  agent_prompt: MyText
+  theme: MyString
+
+two:
+  user: two
+  name: MyString
+  description: MyText
+  is_agent: false
+  agent_prompt: MyText
+  theme: MyString
