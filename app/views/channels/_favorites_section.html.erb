@@ -1,0 +1,30 @@
+<% favorites = current_user.person.favorited_channels.active.includes(:people, :members).order(:name) %>
+<% if favorites.any? %>
+  <div class="mt-4">
+    <div class="px-4">
+      <h2 class="text-sm font-semibold text-indigo-300">Favorites</h2>
+    </div>
+    <div class="mt-2">
+      <% favorites.each do |channel| %>
+        <% member = channel.members.find { |m| m.person_id == current_user.person.id } %>
+        <% unread_count = member&.unread_count || 0 %>
+        <%= link_to channel, class: "block px-4 py-2 hover:bg-indigo-800 transition-colors #{current_channel_id == channel.id ? 'bg-indigo-800' : ''}" do %>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <% if channel.dm? %>
+                <span class="text-gray-400 mr-2">@</span>
+                <span class="<%= unread_count > 0 ? 'font-bold' : '' %>"><%= channel.dm_name_for(current_user.person) %></span>
+              <% else %>
+                <span class="text-gray-400 mr-2">#</span>
+                <span class="<%= unread_count > 0 ? 'font-bold' : '' %>"><%= channel.name %></span>
+              <% end %>
+            </div>
+            <% if unread_count > 0 %>
+              <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full"><%= unread_count %></span>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

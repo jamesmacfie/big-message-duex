@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_04_092913) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_04_093555) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -55,6 +55,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_092913) do
     t.index ["channel_type"], name: "index_channels_on_channel_type"
     t.index ["created_by_id"], name: "index_channels_on_created_by_id"
     t.index ["name"], name: "index_channels_on_name"
+  end
+
+  create_table "favorites", force: :cascade do |t|
+    t.bigint "person_id", null: false
+    t.bigint "channel_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["channel_id"], name: "index_favorites_on_channel_id"
+    t.index ["person_id", "channel_id"], name: "index_favorites_on_person_id_and_channel_id", unique: true
+    t.index ["person_id"], name: "index_favorites_on_person_id"
   end
 
   create_table "invites", force: :cascade do |t|
@@ -144,6 +154,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_092913) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "channels", "people", column: "created_by_id"
+  add_foreign_key "favorites", "channels"
+  add_foreign_key "favorites", "people"
   add_foreign_key "invites", "people", column: "invited_by_id"
   add_foreign_key "members", "channels"
   add_foreign_key "members", "people"

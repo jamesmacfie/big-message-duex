@@ -42,6 +42,11 @@ export default class extends Controller {
   }
 
   _received(data) {
+    // Update sidebar unread count for new messages from other users
+    if (data.type === "message" && data.sender_id !== this.currentPersonIdValue && data.channel_id) {
+      this.incrementSidebarBadge(data.channel_id)
+    }
+
     // Handle message updates
     if (data.type === "message_updated") {
       if (data.sender_id !== this.currentPersonIdValue) {
@@ -166,6 +171,39 @@ export default class extends Controller {
       if (this.hasFormTarget) {
         this.formTarget.requestSubmit()
       }
+    }
+  }
+
+  incrementSidebarBadge(channelId) {
+    // Only update if we're not currently viewing this channel
+    if (channelId === this.channelIdValue) {
+      return
+    }
+
+    const sidebarLink = document.querySelector(`a[href="/channels/${channelId}"]`)
+    if (!sidebarLink) return
+
+    const badgeContainer = sidebarLink.querySelector('.flex.items-center.justify-between')
+    if (!badgeContainer) return
+
+    let badge = badgeContainer.querySelector('.bg-red-600')
+    const channelNameSpan = badgeContainer.querySelector('span:not(.text-gray-400):not(.bg-red-600)')
+
+    if (badge) {
+      // Increment existing badge
+      const currentCount = parseInt(badge.textContent) || 0
+      badge.textContent = currentCount + 1
+    } else {
+      // Create new badge
+      badge = document.createElement('span')
+      badge.className = 'inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full'
+      badge.textContent = '1'
+      badgeContainer.appendChild(badge)
+    }
+
+    // Make channel name bold
+    if (channelNameSpan) {
+      channelNameSpan.classList.add('font-bold')
     }
   }
 }

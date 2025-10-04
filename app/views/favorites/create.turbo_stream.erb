@@ -1,3 +1,9 @@
 <%= turbo_stream.replace "favorite_button_#{@channel.id}" do %>
   <%= render "favorites/button", channel: @channel %>
 <% end %>
+
+<%= turbo_stream.replace "favorites-section" do %>
+  <div id="favorites-section">
+    <%= render "channels/favorites_section", current_user: current_user, current_channel_id: @channel.id %>
+  </div>
+<% end %>

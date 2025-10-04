@@ -42,7 +42,7 @@ class Member < ApplicationRecord
   def unread_count
     return 0 unless last_viewed_at
 
-    channel.messages.where("created_at > ?", last_viewed_at).count
+    channel.messages.top_level.where("created_at > ?", last_viewed_at).count
   end
 
   def has_unread?

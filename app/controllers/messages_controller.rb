@@ -30,7 +30,8 @@ class MessagesController < ApplicationController
           {
             type: "message",
             message: render_to_string(partial: "messages/message", locals: { message: @message }),
-            sender_id: current_user.person.id
+            sender_id: current_user.person.id,
+            channel_id: @channel.id
           }
         )
       end
