@@ -4,10 +4,15 @@ class Message < ApplicationRecord
   belongs_to :parent_message, class_name: "Message", optional: true
   has_many :replies, class_name: "Message", foreign_key: :parent_message_id, dependent: :destroy
   has_many :reactions, dependent: :destroy
+  has_many :mentions, dependent: :destroy
+  has_many :mentioned_people, through: :mentions, source: :person
 
   validates :content, presence: true
   validates :person, presence: true
   validates :channel, presence: true
+
+  after_create :process_mentions
+  after_update :process_mentions, if: :saved_change_to_content?
 
   scope :ordered, -> { order(created_at: :asc) }
   scope :recent, -> { order(created_at: :desc) }
@@ -51,5 +56,15 @@ class Message < ApplicationRecord
 
   def replier_people(limit: 5)
     replies.includes(:person).order(created_at: :desc).limit(limit).map(&:person).uniq
+  end
+
+  def mentions?(person)
+    mentioned_people.exists?(id: person.id)
+  end
+
+  private
+
+  def process_mentions
+    MentionParser.new(self).process
   end
 end

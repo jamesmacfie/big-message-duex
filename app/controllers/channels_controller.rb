@@ -1,8 +1,8 @@
 class ChannelsController < ApplicationController
   before_action :require_login
   before_action :require_confirmed_email
-  before_action :set_channel, only: [ :show, :edit, :update, :archive ]
-  before_action :authorize_channel_access, only: [ :show, :edit, :update, :archive ]
+  before_action :set_channel, only: [ :show, :edit, :update, :archive, :members_autocomplete ]
+  before_action :authorize_channel_access, only: [ :show, :edit, :update, :archive, :members_autocomplete ]
   before_action :authorize_admin, only: [ :edit, :update, :archive ]
 
   def index
@@ -52,6 +52,20 @@ class ChannelsController < ApplicationController
   def archive
     @channel.archive!
     redirect_to channels_path, notice: "Channel has been archived."
+  end
+
+  def members_autocomplete
+    query = params[:query].to_s.strip
+    members = @channel.members.includes(:person)
+
+    if query.present?
+      # Filter members by name matching the query
+      people = members.map(&:person).select { |p| p.name.downcase.include?(query.downcase) }
+    else
+      people = members.map(&:person)
+    end
+
+    render json: people.map { |p| { id: p.id, name: p.name } }
   end
 
   private

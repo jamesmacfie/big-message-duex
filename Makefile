@@ -1,4 +1,4 @@
-''.PHONY: help setup install db-create db-migrate db-seed db-reset db-setup console server test docker-up docker-down docker-logs clean generate-model generate-controller generate-migration rails
+''.PHONY: help setup install db-create db-migrate db-seed db-seed-test db-reset db-setup console server test docker-up docker-down docker-logs clean generate-model generate-controller generate-migration rails
 
 # Default shell
 SHELL := /bin/bash
@@ -17,7 +17,8 @@ help:
 	@echo "Database:"
 	@echo "  make db-create     - Create database"
 	@echo "  make db-migrate    - Run migrations"
-	@echo "  make db-seed       - Seed database"
+	@echo "  make db-seed       - Seed database with test data"
+	@echo "  make db-seed-test  - Seed database with test data (alias)"
 	@echo "  make db-reset      - Reset database (drop, create, migrate, seed)"
 	@echo "  make db-setup      - Setup database (create, migrate, seed)"
 	@echo ""
@@ -56,6 +57,8 @@ db-migrate:
 
 db-seed:
 	bin/rails db:seed
+
+db-seed-test: db-seed
 
 db-reset:
 	bin/rails db:drop db:create db:migrate db:seed

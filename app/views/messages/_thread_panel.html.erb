@@ -65,19 +65,31 @@
 
   <!-- Reply form -->
   <div class="border-t border-gray-200 px-6 py-4 bg-white">
-    <%= form_with model: [channel, reply],
-                  class: "flex items-start space-x-3",
-                  data: { thread_target: "replyForm", action: "turbo:submit-end->thread#resetReplyForm" } do |f| %>
-      <%= f.hidden_field :parent_message_id %>
-      <div class="flex-1">
-        <%= f.text_area :content,
-            rows: 2,
-            placeholder: "Reply to thread...",
-            class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
-            data: { thread_target: "replyInput", action: "keydown->thread#handleKeydown" },
-            required: true %>
-      </div>
-      <%= f.submit "Reply", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
-    <% end %>
+    <div class="relative"
+         data-controller="mention-autocomplete"
+         data-mention-autocomplete-channel-id-value="<%= channel.id %>">
+      <%= form_with model: [channel, reply],
+                    class: "flex items-start space-x-3",
+                    data: { thread_target: "replyForm", action: "turbo:submit-end->thread#resetReplyForm" } do |f| %>
+        <%= f.hidden_field :parent_message_id %>
+        <div class="flex-1 relative">
+          <%= f.text_area :content,
+              rows: 2,
+              placeholder: "Reply to thread...",
+              class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
+              data: {
+                thread_target: "replyInput",
+                mention_autocomplete_target: "input",
+                action: "keydown->thread#handleKeydown keydown->mention-autocomplete#handleKeydown input->mention-autocomplete#handleInput"
+              },
+              required: true %>
+          <!-- Autocomplete dropdown -->
+          <div data-mention-autocomplete-target="dropdown"
+               class="hidden absolute bottom-full left-0 mb-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+          </div>
+        </div>
+        <%= f.submit "Reply", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
+      <% end %>
+    </div>
   </div>
 </div>

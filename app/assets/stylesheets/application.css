@@ -13,3 +13,12 @@
  *= require_tree .
  *= require_self
  */
+
+/* Mention styling */
+.mention {
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}

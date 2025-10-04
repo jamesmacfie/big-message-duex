@@ -2,6 +2,9 @@ module ApplicationHelper
   def markdown(text)
     return "" if text.blank?
 
+    # First, process mentions to add highlighting before markdown rendering
+    text_with_mentions = process_mentions(text)
+
     options = {
       filter_html: false,
       hard_wrap: true,
@@ -23,6 +26,20 @@ module ApplicationHelper
     renderer = Redcarpet::Render::HTML.new(options)
     markdown = Redcarpet::Markdown.new(renderer, extensions)
 
-    markdown.render(text).html_safe
+    markdown.render(text_with_mentions).html_safe
+  end
+
+  private
+
+  def process_mentions(text)
+    # Pattern to match @mentions: @Name or @FirstName LastName
+    mention_pattern = /@([\w\s]+?)(?=\s|$|[^\w\s])/
+
+    # Replace mentions with styled spans
+    text.gsub(mention_pattern) do |match|
+      name = $1
+      # Wrap mention in a span with CSS classes for styling
+      "<span class=\"mention\">@#{name}</span>"
+    end
   end
 end

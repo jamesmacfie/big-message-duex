@@ -43,6 +43,7 @@ Rails.application.routes.draw do
     end
     member do
       post :archive
+      get :members_autocomplete
     end
   end
 

@@ -1,4 +1,4 @@
-<div class="flex space-x-3 hover:bg-gray-50 -mx-4 px-4 py-2 rounded group" data-message-id="<%= message.id %>" id="message-<%= message.id %>" data-controller="message-menu">
+<div class="flex space-x-3 hover:bg-gray-50 -mx-4 px-4 py-2 rounded group <%= message.mentions?(current_user.person) ? 'bg-yellow-50 border-l-4 border-yellow-400 pl-3' : '' %>" data-message-id="<%= message.id %>" id="message-<%= message.id %>" data-controller="message-menu">
   <div class="flex-shrink-0">
     <% if message.person.avatar.attached? %>
       <%= image_tag message.person.avatar, class: "h-10 w-10 rounded object-cover" %>

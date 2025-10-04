@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_04_093555) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_04_193015) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -95,6 +95,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_093555) do
     t.index ["role"], name: "index_members_on_role"
   end
 
+  create_table "mentions", force: :cascade do |t|
+    t.bigint "message_id", null: false
+    t.bigint "person_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id", "person_id"], name: "index_mentions_on_message_id_and_person_id", unique: true
+    t.index ["message_id"], name: "index_mentions_on_message_id"
+    t.index ["person_id"], name: "index_mentions_on_person_id"
+  end
+
   create_table "messages", force: :cascade do |t|
     t.bigint "person_id", null: false
     t.bigint "channel_id", null: false
@@ -159,6 +169,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_093555) do
   add_foreign_key "invites", "people", column: "invited_by_id"
   add_foreign_key "members", "channels"
   add_foreign_key "members", "people"
+  add_foreign_key "mentions", "messages"
+  add_foreign_key "mentions", "people"
   add_foreign_key "messages", "channels"
   add_foreign_key "messages", "messages", column: "parent_message_id"
   add_foreign_key "messages", "people"
