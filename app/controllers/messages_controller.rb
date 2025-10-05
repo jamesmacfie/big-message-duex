@@ -17,7 +17,7 @@ class MessagesController < ApplicationController
 
         # Handle file attachments if present
         if params[:message][:files].present?
-          params[:message][:files].each do |file|
+          params[:message][:files].reject(&:blank?).each do |file|
             attachment = @message.attachments.create!(
               file_name: file.original_filename,
               content_type: file.content_type,
