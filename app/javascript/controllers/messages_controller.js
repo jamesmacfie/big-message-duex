@@ -195,6 +195,16 @@ export default class extends Controller {
         this.inputTarget.value = ''
         this.inputTarget.focus()
       }
+
+      // Clear file upload preview if present
+      const fileUploadController = this.application.getControllerForElementAndIdentifier(
+        this.element.querySelector('[data-controller*="file-upload"]'),
+        'file-upload'
+      )
+      if (fileUploadController) {
+        fileUploadController.clearFiles()
+      }
+
       // Stop typing indicator when message is sent
       this.stopTyping()
       this.isTyping = false
