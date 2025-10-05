@@ -1,31 +1,23 @@
 {
   "permissions": {
     "allow": [
-      "Bash(rails new:*)",
       "Bash(ruby --version)",
       "Read(//usr/local/bin/**)",
       "Read(//Users/jamesmacfie/.rubies/**)",
-      "Bash(export PATH=\"$HOME/.rubies/ruby-3.4.5/bin:$PATH\")",
       "Bash(gem list:*)",
-      "Bash(~/.rubies/ruby-3.4.5/bin/gem install rails --version 7.2.2)",
+      "Bash(~/.rubies/ruby-3.4.5/bin/gem:*)",
       "Bash(gem:*)",
-      "Bash(export PATH=\"$HOME/.gem/ruby/3.4.5/bin:$HOME/.rubies/ruby-3.4.5/bin:$PATH\")",
       "Bash(bundle install:*)",
       "Bash(rails:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(make generate-controller:*)",
-      "Bash(make generate-model:*)",
       "Bash(make:*)",
-      "Bash(bin/rails generate:*)",
       "Bash(bin/rails:*)",
-      "Bash(RAILS_ENV=test bin/rails db:schema:load)",
-      "Bash(RAILS_ENV=test bin/rails active_storage:install)",
-      "Bash(RAILS_ENV=test bin/rails db:migrate)",
       "Bash(git log:*)",
       "Bash(git restore:*)",
-      "Bash(RAILS_ENV=test bin/rails db:environment:set)",
-      "Bash(cat:*)"
+      "Bash(RAILS_ENV=test:*)",
+      "Bash(cat:*)",
+      "Bash(export PATH=\"$HOME/.gem/ruby/3.4.5/bin:$HOME/.rubies/ruby-3.4.5/bin:$PATH\")"
     ],
     "deny": [],
     "ask": []

@@ -13,6 +13,7 @@ class Message < ApplicationRecord
 
   after_create :process_mentions
   after_update :process_mentions, if: :saved_change_to_content?
+  after_create :trigger_ai_agent_response, if: :should_trigger_agent_response?
 
   scope :ordered, -> { order(created_at: :asc) }
   scope :recent, -> { order(created_at: :desc) }
@@ -70,5 +71,18 @@ class Message < ApplicationRecord
 
   def process_mentions
     MentionParser.new(self).process
+  end
+
+  def should_trigger_agent_response?
+    # Only trigger for top-level messages (not thread replies)
+    # Only in DM channels
+    # Only when message is from a human (not an agent)
+    !thread? && channel.dm? && !person.is_agent?
+  end
+
+  def trigger_ai_agent_response
+    # Use a background job or pub/sub to avoid blocking
+    # For now, we'll call it directly but in production this should be async
+    AiAgentResponder.respond_to_message(self)
   end
 end
