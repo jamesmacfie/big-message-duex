@@ -192,6 +192,6 @@ class MessagesController < ApplicationController
   end
 
   def message_params
-    params.require(:message).permit(:content, :parent_message_id, files: [])
+    params.require(:message).permit(:content, :parent_message_id)
   end
 end
