@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_04_193015) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_04_195424) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -40,6 +40,16 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_193015) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "attachments", force: :cascade do |t|
+    t.bigint "message_id", null: false
+    t.string "content_type"
+    t.bigint "file_size"
+    t.string "file_name"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["message_id"], name: "index_attachments_on_message_id"
   end
 
   create_table "channels", force: :cascade do |t|
@@ -163,6 +173,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_193015) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "attachments", "messages"
   add_foreign_key "channels", "people", column: "created_by_id"
   add_foreign_key "favorites", "channels"
   add_foreign_key "favorites", "people"

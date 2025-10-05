@@ -6,8 +6,8 @@ class Message < ApplicationRecord
   has_many :reactions, dependent: :destroy
   has_many :mentions, dependent: :destroy
   has_many :mentioned_people, through: :mentions, source: :person
+  has_many :attachments, dependent: :destroy
 
-  validates :content, presence: true
   validates :person, presence: true
   validates :channel, presence: true
 
@@ -60,6 +60,10 @@ class Message < ApplicationRecord
 
   def mentions?(person)
     mentioned_people.exists?(id: person.id)
+  end
+
+  def has_attachments?
+    attachments.any?
   end
 
   private

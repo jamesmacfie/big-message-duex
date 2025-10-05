@@ -20,9 +20,18 @@
         This message was deleted
       </div>
     <% else %>
-      <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none" id="message-content-<%= reply.id %>">
-        <%= markdown(reply.content) %>
-      </div>
+      <% if reply.content.present? %>
+        <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none" id="message-content-<%= reply.id %>">
+          <%= markdown(reply.content) %>
+        </div>
+      <% end %>
+
+      <!-- Attachments -->
+      <% if reply.attachments.any? %>
+        <div class="mt-2 space-y-2">
+          <%= render reply.attachments %>
+        </div>
+      <% end %>
 
       <!-- Edit form (hidden by default) -->
       <div class="hidden mt-1" id="message-edit-<%= reply.id %>" data-message-menu-target="editForm">

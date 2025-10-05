@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  message: one
+  content_type: image/png
+  file_size: 102400
+  file_name: test_image.png
+
+two:
+  message: two
+  content_type: application/pdf
+  file_size: 204800
+  file_name: test_document.pdf

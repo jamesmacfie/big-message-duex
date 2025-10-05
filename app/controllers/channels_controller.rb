@@ -32,7 +32,7 @@ class ChannelsController < ApplicationController
 
   def show
     @channel = Channel.includes(members: :person).find(params[:id])
-    @messages = @channel.messages.top_level.includes(:person).ordered
+    @messages = @channel.messages.top_level.includes(:person, :attachments).ordered
     @message = Message.new
     @current_member = @channel.members.find_by(person: current_user.person)
     @current_member&.update_last_viewed!
