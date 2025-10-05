@@ -11,18 +11,23 @@ class MessagesController < ApplicationController
     @message = @channel.messages.build(message_params)
     @message.person = current_user.person
 
-    if @message.save
-      # Handle file attachments if present
-      if params[:message][:files].present?
-        params[:message][:files].each do |file|
-          attachment = @message.attachments.create!(
-            file_name: file.original_filename,
-            content_type: file.content_type,
-            file_size: file.size
-          )
-          attachment.file.attach(file)
+    begin
+      ActiveRecord::Base.transaction do
+        @message.save!
+
+        # Handle file attachments if present
+        if params[:message][:files].present?
+          params[:message][:files].each do |file|
+            attachment = @message.attachments.create!(
+              file_name: file.original_filename,
+              content_type: file.content_type,
+              file_size: file.size
+            )
+            attachment.file.attach(file)
+          end
         end
       end
+
       if @message.parent_message_id.present?
         # This is a thread reply - broadcast to thread subscribers
         ChatRoomChannel.broadcast_to(
@@ -60,7 +65,8 @@ class MessagesController < ApplicationController
         end
         format.html { redirect_to @channel }
       end
-    else
+    rescue ActiveRecord::RecordInvalid => e
+      @message.errors.add(:base, e.message)
       respond_to do |format|
         format.turbo_stream { render turbo_stream: turbo_stream.replace("message-form", partial: "messages/form", locals: { channel: @channel, message: @message }) }
         format.html { redirect_to @channel, alert: "Failed to send message: #{@message.errors.full_messages.join(', ')}" }

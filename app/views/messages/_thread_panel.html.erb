@@ -29,6 +29,12 @@
         <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none">
           <%= markdown(message.content) %>
         </div>
+        <!-- Attachments -->
+        <% if message.attachments.any? %>
+          <div class="mt-2 space-y-2">
+            <%= render message.attachments %>
+          </div>
+        <% end %>
       </div>
     </div>
   </div>
@@ -37,26 +43,7 @@
   <div class="flex-1 overflow-y-auto px-6 py-4">
     <div id="thread-replies-<%= message.id %>" class="space-y-4">
       <% if replies.any? %>
-        <% replies.each do |reply| %>
-          <div class="flex items-start space-x-3" id="reply-<%= reply.id %>">
-            <% if reply.person.avatar.attached? %>
-              <%= image_tag reply.person.avatar, class: "h-8 w-8 rounded-full object-cover" %>
-            <% else %>
-              <div class="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                <span class="text-xs font-medium text-indigo-600"><%= reply.person.name[0].upcase %></span>
-              </div>
-            <% end %>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-baseline space-x-2">
-                <p class="text-sm font-semibold text-gray-900"><%= reply.person.name %></p>
-                <p class="text-xs text-gray-500"><%= reply.created_at.strftime("%l:%M %p") %></p>
-              </div>
-              <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none">
-                <%= markdown(reply.content) %>
-              </div>
-            </div>
-          </div>
-        <% end %>
+        <%= render replies %>
       <% else %>
         <p id="no-replies-<%= message.id %>" class="text-sm text-gray-500 text-center py-8">No replies yet. Start the conversation!</p>
       <% end %>
@@ -66,29 +53,56 @@
   <!-- Reply form -->
   <div class="border-t border-gray-200 px-6 py-4 bg-white">
     <div class="relative"
-         data-controller="mention-autocomplete"
+         data-controller="mention-autocomplete file-upload"
          data-mention-autocomplete-channel-id-value="<%= channel.id %>">
       <%= form_with model: [channel, reply],
-                    class: "flex items-start space-x-3",
+                    class: "flex flex-col space-y-2",
                     data: { thread_target: "replyForm", action: "turbo:submit-end->thread#resetReplyForm" } do |f| %>
         <%= f.hidden_field :parent_message_id %>
-        <div class="flex-1 relative">
-          <%= f.text_area :content,
-              rows: 2,
-              placeholder: "Reply to thread...",
-              class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
-              data: {
-                thread_target: "replyInput",
-                mention_autocomplete_target: "input",
-                action: "keydown->thread#handleKeydown keydown->mention-autocomplete#handleKeydown input->mention-autocomplete#handleInput"
-              },
-              required: true %>
-          <!-- Autocomplete dropdown -->
-          <div data-mention-autocomplete-target="dropdown"
-               class="hidden absolute bottom-full left-0 mb-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+        <div class="flex items-start space-x-3">
+          <div class="flex-1 relative">
+            <%= f.text_area :content,
+                rows: 2,
+                placeholder: "Reply to thread...",
+                class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
+                data: {
+                  thread_target: "replyInput",
+                  mention_autocomplete_target: "input",
+                  action: "keydown->thread#handleKeydown keydown->mention-autocomplete#handleKeydown input->mention-autocomplete#handleInput"
+                } %>
+            <!-- Autocomplete dropdown -->
+            <div data-mention-autocomplete-target="dropdown"
+                 class="hidden absolute bottom-full left-0 mb-2 w-64 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto z-50">
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <!-- File upload button -->
+            <%= f.file_field :files,
+                multiple: true,
+                class: "hidden",
+                id: "thread-file-upload-input-<%= message.id %>",
+                data: {
+                  file_upload_target: "input",
+                  action: "change->file-upload#handleFiles"
+                } %>
+            <label for="thread-file-upload-input-<%= message.id %>" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+              </svg>
+            </label>
+            <%= f.submit "Reply", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
           </div>
         </div>
-        <%= f.submit "Reply", class: "inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
+        <!-- File preview area -->
+        <div data-file-upload-target="preview" class="hidden px-4 py-2 bg-gray-50 rounded-lg">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-700">Attachments:</span>
+            <button type="button"
+                    data-action="click->file-upload#clearFiles"
+                    class="text-sm text-red-600 hover:text-red-800">Clear all</button>
+          </div>
+          <div data-file-upload-target="list" class="space-y-1"></div>
+        </div>
       <% end %>
     </div>
   </div>

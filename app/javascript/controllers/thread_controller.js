@@ -116,6 +116,16 @@ export default class extends Controller {
         replyInput.value = ''
         replyInput.focus()
       }
+
+      // Clear file upload preview if present
+      const fileUploadController = this.application.getControllerForElementAndIdentifier(
+        this.threadPanel.querySelector('[data-controller*="file-upload"]'),
+        'file-upload'
+      )
+      if (fileUploadController) {
+        fileUploadController.clearFiles()
+      }
+
       // Scroll to bottom after adding reply
       setTimeout(() => this.scrollThreadToBottom(), 100)
     }
