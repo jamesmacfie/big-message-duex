@@ -8,25 +8,58 @@ class MessagesController < ApplicationController
   before_action :authorize_message_owner, only: [:update, :destroy]
 
   def create
-    @message = @channel.messages.build(message_params)
-    @message.person = current_user.person
+    # Check if this is a slash command
+    if SlashCommandParser.is_command?(params[:message][:content])
+      result = SlashCommandParser.execute(
+        params[:message][:content],
+        channel: @channel,
+        person: current_user.person
+      )
 
-    begin
-      ActiveRecord::Base.transaction do
-        @message.save!
-
-        # Handle file attachments if present
-        if params[:message][:files].present?
-          params[:message][:files].reject(&:blank?).each do |file|
-            attachment = @message.attachments.create!(
-              file_name: file.original_filename,
-              content_type: file.content_type,
-              file_size: file.size
+      if result[:error]
+        respond_to do |format|
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.replace(
+              "message-form",
+              partial: "channels/message_form",
+              locals: { channel: @channel, message: Message.new, current_user: current_user, error: result[:error] }
             )
-            attachment.file.attach(file)
+          end
+          format.html { redirect_to @channel, alert: result[:error] }
+        end
+        return
+      end
+
+      @message = result[:message]
+    else
+      @message = @channel.messages.build(message_params)
+      @message.person = current_user.person
+
+      begin
+        ActiveRecord::Base.transaction do
+          @message.save!
+
+          # Handle file attachments if present
+          if params[:message][:files].present?
+            params[:message][:files].reject(&:blank?).each do |file|
+              attachment = @message.attachments.create!(
+                file_name: file.original_filename,
+                content_type: file.content_type,
+                file_size: file.size
+              )
+              attachment.file.attach(file)
+            end
           end
         end
+      rescue ActiveRecord::RecordInvalid => e
+        @message.errors.add(:base, e.message)
+        respond_to do |format|
+          format.turbo_stream { render turbo_stream: turbo_stream.replace("message-form", partial: "messages/form", locals: { channel: @channel, message: @message }) }
+          format.html { redirect_to @channel, alert: "Failed to send message: #{@message.errors.full_messages.join(', ')}" }
+        end
+        return
       end
+    end
 
       if @message.parent_message_id.present?
         # This is a thread reply - broadcast to thread subscribers
@@ -52,25 +85,43 @@ class MessagesController < ApplicationController
         )
       end
 
-      respond_to do |format|
-        if @message.parent_message_id.present?
-          format.turbo_stream do
-            render turbo_stream: [
-              turbo_stream.remove("no-replies-#{@message.parent_message_id}"),
-              turbo_stream.append("thread-replies-#{@message.parent_message_id}", partial: "messages/thread_reply", locals: { reply: @message })
-            ]
-          end
-        else
-          format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }) }
+    # Broadcast the message
+    if @message.parent_message_id.present?
+      # This is a thread reply - broadcast to thread subscribers
+      ChatRoomChannel.broadcast_to(
+        @channel,
+        {
+          type: "thread_reply",
+          parent_message_id: @message.parent_message_id,
+          reply: render_to_string(partial: "messages/thread_reply", locals: { reply: @message }),
+          sender_id: current_user.person.id
+        }
+      )
+    else
+      # This is a top-level message - broadcast normally
+      ChatRoomChannel.broadcast_to(
+        @channel,
+        {
+          type: "message",
+          message: render_to_string(partial: "messages/message", locals: { message: @message }),
+          sender_id: current_user.person.id,
+          channel_id: @channel.id
+        }
+      )
+    end
+
+    respond_to do |format|
+      if @message.parent_message_id.present?
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.remove("no-replies-#{@message.parent_message_id}"),
+            turbo_stream.append("thread-replies-#{@message.parent_message_id}", partial: "messages/thread_reply", locals: { reply: @message })
+          ]
         end
-        format.html { redirect_to @channel }
+      else
+        format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }) }
       end
-    rescue ActiveRecord::RecordInvalid => e
-      @message.errors.add(:base, e.message)
-      respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("message-form", partial: "messages/form", locals: { channel: @channel, message: @message }) }
-        format.html { redirect_to @channel, alert: "Failed to send message: #{@message.errors.full_messages.join(', ')}" }
-      end
+      format.html { redirect_to @channel }
     end
   end
 
