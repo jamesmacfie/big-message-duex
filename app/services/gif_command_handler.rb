@@ -11,31 +11,33 @@ class GifCommandHandler
     return { error: "Please provide a search term (e.g., /gif funny cats)" } if @query.blank?
 
     giphy_service = GiphyService.new
-    result = giphy_service.search(@query, limit: 1)
+    result = giphy_service.search(@query, limit: 10)
 
     if result[:error]
       return { error: result[:error] }
     end
 
-    gif = result[:gifs].first
-    create_message_with_gif(gif)
+    # Return preview data instead of creating message immediately
+    {
+      preview: true,
+      query: @query,
+      gifs: result[:gifs]
+    }
   end
 
-  private
-
-  def create_message_with_gif(gif)
-    message = @channel.messages.build(
-      content: "/gif #{@query}",
-      person: @person
+  def self.create_message_with_gif(gif_url, gif_title, query, channel:, person:)
+    message = channel.messages.build(
+      content: "/gif #{query}",
+      person: person
     )
 
     begin
       # Download the GIF from Giphy
-      gif_file = URI.open(gif[:url])
+      gif_file = URI.open(gif_url)
 
       # Create the attachment
       attachment = message.attachments.build(
-        file_name: "#{gif[:title].parameterize.presence || 'giphy'}.gif",
+        file_name: "#{gif_title.parameterize.presence || 'giphy'}.gif",
         content_type: "image/gif",
         file_size: gif_file.size
       )
@@ -56,4 +58,5 @@ class GifCommandHandler
       { error: "Failed to download GIF: #{e.message}" }
     end
   end
+
 end

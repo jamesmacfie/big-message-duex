@@ -6,7 +6,7 @@ class GiphyService
     @api_key = ENV["GIPHY_API_KEY"]
   end
 
-  def search(query, limit: 1)
+  def search(query, limit: 10)
     return { error: "Giphy API key not configured" } unless @api_key.present?
 
     response = self.class.get("/gifs/search", query: {

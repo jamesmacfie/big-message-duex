@@ -30,6 +30,26 @@ class MessagesController < ApplicationController
         return
       end
 
+      # Check if this is a preview response (e.g., from /gif command)
+      if result[:preview]
+        respond_to do |format|
+          format.turbo_stream do
+            render turbo_stream: turbo_stream.replace(
+              "message-form",
+              partial: "channels/gif_preview",
+              locals: {
+                channel: @channel,
+                current_user: current_user,
+                query: result[:query],
+                gifs: result[:gifs]
+              }
+            )
+          end
+          format.html { redirect_to @channel }
+        end
+        return
+      end
+
       @message = result[:message]
     else
       @message = @channel.messages.build(message_params)
@@ -209,6 +229,53 @@ class MessagesController < ApplicationController
           partial: @message.thread? ? "messages/thread_reply" : "messages/message",
           locals: @message.thread? ? { reply: @message } : { message: @message }
         )
+      end
+      format.html { redirect_to @channel }
+    end
+  end
+
+  def post_gif
+    result = GifCommandHandler.create_message_with_gif(
+      params[:gif_url],
+      params[:gif_title],
+      params[:query],
+      channel: @channel,
+      person: current_user.person
+    )
+
+    if result[:error]
+      respond_to do |format|
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.replace(
+            "message-form",
+            partial: "channels/message_form",
+            locals: { channel: @channel, message: Message.new, current_user: current_user, error: result[:error] }
+          )
+        end
+        format.html { redirect_to @channel, alert: result[:error] }
+      end
+      return
+    end
+
+    @message = result[:message]
+
+    # Broadcast the message
+    ChatRoomChannel.broadcast_to(
+      @channel,
+      {
+        type: "message",
+        message: render_to_string(partial: "messages/message", locals: { message: @message }),
+        sender_id: current_user.person.id,
+        channel_id: @channel.id
+      }
+    )
+
+    respond_to do |format|
+      format.turbo_stream do
+        render turbo_stream: [
+          turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }),
+          turbo_stream.replace("message-form", partial: "channels/message_form", locals: { channel: @channel, message: Message.new, current_user: current_user })
+        ]
       end
       format.html { redirect_to @channel }
     end

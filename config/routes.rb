@@ -35,6 +35,9 @@ Rails.application.routes.draw do
         get :thread
         get :thread_indicator
       end
+      collection do
+        post :post_gif
+      end
     end
     resources :members, only: [ :index, :create, :update, :destroy ]
     resource :favorite, only: [ :create, :destroy ]
