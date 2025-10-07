@@ -13,7 +13,7 @@ class Message < ApplicationRecord
 
   after_create :process_mentions
   after_update :process_mentions, if: :saved_change_to_content?
-  after_create :trigger_ai_agent_response, if: :should_trigger_agent_response?
+  after_commit :enqueue_ai_agent_response, on: :create, if: :should_trigger_agent_response?
 
   scope :ordered, -> { order(created_at: :asc) }
   scope :recent, -> { order(created_at: :desc) }
@@ -74,15 +74,14 @@ class Message < ApplicationRecord
   end
 
   def should_trigger_agent_response?
-    # Only trigger for top-level messages (not thread replies)
-    # Only in DM channels
+    # Trigger for:
+    # 1. Top-level messages in DM channels (will create a thread)
+    # 2. Thread replies in DM channels (will continue the thread)
     # Only when message is from a human (not an agent)
-    !thread? && channel.dm? && !person.is_agent?
+    channel.dm? && !person.is_agent?
   end
 
-  def trigger_ai_agent_response
-    # Use a background job or pub/sub to avoid blocking
-    # For now, we'll call it directly but in production this should be async
-    AiAgentResponder.respond_to_message(self)
+  def enqueue_ai_agent_response
+    AiAgentResponderJob.perform_later(id)
   end
 end

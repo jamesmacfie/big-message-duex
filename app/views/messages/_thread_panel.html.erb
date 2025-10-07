@@ -1,3 +1,6 @@
+<%
+  current_person = local_assigns.fetch(:current_person, nil)
+%>
 <div class="flex flex-col h-full bg-white border-l border-gray-200">
   <!-- Thread header -->
   <div class="px-6 py-4 border-b border-gray-200">
@@ -43,7 +46,7 @@
   <div class="flex-1 overflow-y-auto px-6 py-4">
     <div id="thread-replies-<%= message.id %>" class="space-y-4">
       <% if replies.any? %>
-        <%= render replies %>
+        <%= render partial: "messages/thread_reply", collection: replies, as: :reply, locals: { current_person: current_person } %>
       <% else %>
         <p id="no-replies-<%= message.id %>" class="text-sm text-gray-500 text-center py-8">No replies yet. Start the conversation!</p>
       <% end %>
@@ -77,14 +80,14 @@
           </div>
           <div class="flex items-center space-x-2">
             <!-- File upload button -->
-            <%= f.file_field :files,
+            <%= f.file_field(:files,
                 multiple: true,
                 class: "hidden",
-                id: "thread-file-upload-input-<%= message.id %>",
+                id: "thread-file-upload-input-#{message.id}",
                 data: {
                   file_upload_target: "input",
                   action: "change->file-upload#handleFiles"
-                } %>
+                }) %>
             <label for="thread-file-upload-input-<%= message.id %>" class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>

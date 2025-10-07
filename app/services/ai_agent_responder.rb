@@ -22,8 +22,11 @@ class AiAgentResponder
     # Don't respond if the message is from the agent itself
     return if @sender.is_agent?
 
+    # Determine parent message for threading
+    parent_message = determine_parent_message
+
     # Generate and post the AI response
-    generate_and_post_response(agent)
+    generate_and_post_response(agent, parent_message)
   end
 
   private
@@ -32,12 +35,18 @@ class AiAgentResponder
     @channel.people.agents.first
   end
 
-  def generate_and_post_response(agent)
+  def determine_parent_message
+    # If this is already a thread reply, use the same parent
+    # Otherwise, the message itself becomes the parent for the AI's response
+    @message.parent_message_id ? @message.parent_message : @message
+  end
+
+  def generate_and_post_response(agent, parent_message)
     # Set typing indicator for the agent
     set_agent_typing(agent, true)
 
     # Build conversation history
-    conversation_history = build_conversation_history
+    conversation_history = build_conversation_history(parent_message)
 
     # Create OpenAI service
     openai = OpenaiService.new
@@ -55,40 +64,61 @@ class AiAgentResponder
     set_agent_typing(agent, false)
 
     if result[:success]
-      # Create message from agent
+      # Create message from agent as a thread reply
       agent_message = @channel.messages.create!(
         person: agent,
-        content: result[:content]
+        content: result[:content],
+        parent_message_id: parent_message.id
       )
 
       # Broadcast the agent's message
-      broadcast_agent_message(agent_message)
+      broadcast_agent_message(agent_message, parent_message)
     else
       Rails.logger.error("AI Agent error: #{result[:error]}")
       # Optionally send an error message
       error_message = @channel.messages.create!(
         person: agent,
-        content: "I apologize, but I'm having trouble responding right now. Please try again later."
+        content: "I apologize, but I'm having trouble responding right now. Please try again later.",
+        parent_message_id: parent_message.id
       )
-      broadcast_agent_message(error_message)
+      broadcast_agent_message(error_message, parent_message)
     end
   rescue StandardError => e
     set_agent_typing(agent, false)
     Rails.logger.error("AI Agent responder error: #{e.message}\n#{e.backtrace.join("\n")}")
   end
 
-  def build_conversation_history
-    @channel.messages
-            .top_level
-            .includes(:person)
-            .order(created_at: :desc)
-            .limit(CONVERSATION_HISTORY_LIMIT)
-            .reverse
-            .map do |msg|
-      {
-        content: msg.content,
-        is_agent: msg.person.is_agent?
-      }
+  def build_conversation_history(parent_message)
+    # If this is a thread, build history from the thread
+    # Include the parent message and all replies in chronological order
+    if parent_message
+      thread_messages = [parent_message] + parent_message.replies.includes(:person).ordered.to_a
+
+      # Limit to most recent messages if thread is long
+      if thread_messages.length > CONVERSATION_HISTORY_LIMIT
+        thread_messages = thread_messages.last(CONVERSATION_HISTORY_LIMIT)
+      end
+
+      thread_messages.map do |msg|
+        {
+          content: msg.content,
+          is_agent: msg.person.is_agent?
+        }
+      end
+    else
+      # Fallback: build from top-level messages (shouldn't happen with new logic)
+      @channel.messages
+              .top_level
+              .includes(:person)
+              .order(created_at: :desc)
+              .limit(CONVERSATION_HISTORY_LIMIT)
+              .reverse
+              .map do |msg|
+        {
+          content: msg.content,
+          is_agent: msg.person.is_agent?
+        }
+      end
     end
   end
 
@@ -101,34 +131,35 @@ class AiAgentResponder
     return unless member
 
     if is_typing
-      member.update(typing_at: Time.current)
+      member.typing!
     else
-      member.update(typing_at: nil)
+      member.stop_typing!
     end
 
+    payload = {
+      type: is_typing ? "typing" : "stop_typing",
+      person_id: agent.id,
+      person_name: agent.name
+    }
+
+    payload[:typing_at] = member.typing_at&.iso8601 if is_typing && member.typing_at
+
     # Broadcast typing status
-    ChatRoomChannel.broadcast_to(
-      @channel,
-      {
-        type: "typing",
-        person_id: agent.id,
-        person_name: agent.name,
-        is_typing: is_typing
-      }
-    )
+    ChatRoomChannel.broadcast_to(@channel, payload)
   end
 
-  def broadcast_agent_message(message)
+  def broadcast_agent_message(message, parent_message)
+    # Broadcast as thread reply
     ChatRoomChannel.broadcast_to(
       @channel,
       {
-        type: "message",
-        message: ApplicationController.render(
-          partial: "messages/message",
-          locals: { message: message }
+        type: "thread_reply",
+        parent_message_id: parent_message.id,
+        reply: ApplicationController.render(
+          partial: "messages/thread_reply",
+          locals: { reply: message, current_person: nil }
         ),
-        sender_id: message.person_id,
-        channel_id: @channel.id
+        sender_id: message.person_id
       }
     )
   end

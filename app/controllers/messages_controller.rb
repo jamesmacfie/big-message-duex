@@ -81,30 +81,6 @@ class MessagesController < ApplicationController
       end
     end
 
-      if @message.parent_message_id.present?
-        # This is a thread reply - broadcast to thread subscribers
-        ChatRoomChannel.broadcast_to(
-          @channel,
-          {
-            type: "thread_reply",
-            parent_message_id: @message.parent_message_id,
-            reply: render_to_string(partial: "messages/thread_reply", locals: { reply: @message }),
-            sender_id: current_user.person.id
-          }
-        )
-      else
-        # This is a top-level message - broadcast normally
-        ChatRoomChannel.broadcast_to(
-          @channel,
-          {
-            type: "message",
-            message: render_to_string(partial: "messages/message", locals: { message: @message }),
-            sender_id: current_user.person.id,
-            channel_id: @channel.id
-          }
-        )
-      end
-
     # Broadcast the message
     if @message.parent_message_id.present?
       # This is a thread reply - broadcast to thread subscribers
@@ -113,7 +89,7 @@ class MessagesController < ApplicationController
         {
           type: "thread_reply",
           parent_message_id: @message.parent_message_id,
-          reply: render_to_string(partial: "messages/thread_reply", locals: { reply: @message }),
+          reply: render_to_string(partial: "messages/thread_reply", locals: { reply: @message, current_person: current_user.person }),
           sender_id: current_user.person.id
         }
       )
@@ -123,9 +99,10 @@ class MessagesController < ApplicationController
         @channel,
         {
           type: "message",
-          message: render_to_string(partial: "messages/message", locals: { message: @message }),
+          message: render_to_string(partial: "messages/message", locals: { message: @message, current_person: current_user.person }),
           sender_id: current_user.person.id,
-          channel_id: @channel.id
+          channel_id: @channel.id,
+          client_temp_id: params[:client_temp_id]
         }
       )
     end
@@ -135,11 +112,21 @@ class MessagesController < ApplicationController
         format.turbo_stream do
           render turbo_stream: [
             turbo_stream.remove("no-replies-#{@message.parent_message_id}"),
-            turbo_stream.append("thread-replies-#{@message.parent_message_id}", partial: "messages/thread_reply", locals: { reply: @message })
+            turbo_stream.append(
+              "thread-replies-#{@message.parent_message_id}",
+              partial: "messages/thread_reply",
+              locals: { reply: @message, current_person: current_user.person }
+            )
           ]
         end
       else
-        format.turbo_stream { render turbo_stream: turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }) }
+        format.turbo_stream do
+          render turbo_stream: turbo_stream.append(
+            "messages",
+            partial: "messages/message",
+            locals: { message: @message, current_person: current_user.person }
+          )
+        end
       end
       format.html { redirect_to @channel }
     end
@@ -148,8 +135,14 @@ class MessagesController < ApplicationController
   def show
     respond_to do |format|
       format.html do
+        locals = if @message.thread?
+                   { reply: @message, current_person: current_user.person }
+                 else
+                   { message: @message, current_person: current_user.person }
+                 end
+
         render partial: @message.thread? ? "messages/thread_reply" : "messages/message",
-               locals: @message.thread? ? { reply: @message } : { message: @message }
+               locals: locals
       end
     end
   end
@@ -159,7 +152,16 @@ class MessagesController < ApplicationController
     @reply = Message.new(parent_message_id: @message.id)
 
     respond_to do |format|
-      format.html { render partial: "messages/thread_panel", locals: { message: @message, replies: @replies, reply: @reply, channel: @channel } }
+      format.html do
+        render partial: "messages/thread_panel",
+               locals: {
+                 message: @message,
+                 replies: @replies,
+                 reply: @reply,
+                 channel: @channel,
+                 current_person: current_user.person
+               }
+      end
     end
   end
 
@@ -171,7 +173,7 @@ class MessagesController < ApplicationController
 
   def reactions_partial
     respond_to do |format|
-      format.html { render partial: "messages/reactions", locals: { message: @message } }
+      format.html { render partial: "messages/reactions", locals: { message: @message, current_person: current_user.person } }
     end
   end
 
@@ -196,7 +198,7 @@ class MessagesController < ApplicationController
           render turbo_stream: turbo_stream.replace(
             "message-#{@message.id}",
             partial: @message.thread? ? "messages/thread_reply" : "messages/message",
-            locals: @message.thread? ? { reply: @message } : { message: @message }
+            locals: @message.thread? ? { reply: @message, current_person: current_user.person } : { message: @message, current_person: current_user.person }
           )
         end
         format.html { redirect_to @channel }
@@ -227,7 +229,7 @@ class MessagesController < ApplicationController
         render turbo_stream: turbo_stream.replace(
           "message-#{@message.id}",
           partial: @message.thread? ? "messages/thread_reply" : "messages/message",
-          locals: @message.thread? ? { reply: @message } : { message: @message }
+          locals: @message.thread? ? { reply: @message, current_person: current_user.person } : { message: @message, current_person: current_user.person }
         )
       end
       format.html { redirect_to @channel }
@@ -264,16 +266,21 @@ class MessagesController < ApplicationController
       @channel,
       {
         type: "message",
-        message: render_to_string(partial: "messages/message", locals: { message: @message }),
+        message: render_to_string(partial: "messages/message", locals: { message: @message, current_person: current_user.person }),
         sender_id: current_user.person.id,
-        channel_id: @channel.id
+        channel_id: @channel.id,
+        client_temp_id: params[:client_temp_id]
       }
     )
 
     respond_to do |format|
       format.turbo_stream do
         render turbo_stream: [
-          turbo_stream.append("messages", partial: "messages/message", locals: { message: @message }),
+          turbo_stream.append(
+            "messages",
+            partial: "messages/message",
+            locals: { message: @message, current_person: current_user.person }
+          ),
           turbo_stream.replace("message-form", partial: "channels/message_form", locals: { channel: @channel, message: Message.new, current_user: current_user })
         ]
       end

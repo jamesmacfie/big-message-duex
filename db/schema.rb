@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_10_04_195424) do
+ActiveRecord::Schema[7.2].define(version: 2025_10_05_033629) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -53,7 +53,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_10_04_195424) do
   end
 
   create_table "channels", force: :cascade do |t|
-    t.string "name", null: false
+    t.string "name"
     t.text "description"
     t.string "channel_type", default: "channel", null: false
     t.boolean "is_private", default: false, null: false

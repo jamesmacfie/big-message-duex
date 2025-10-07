@@ -1,4 +1,8 @@
-<div class="flex items-start space-x-3 group hover:bg-gray-50 -mx-4 px-4 py-2 rounded <%= reply.mentions?(current_user.person) ? 'bg-yellow-50 border-l-4 border-yellow-400 pl-3' : '' %>" id="message-<%= reply.id %>" data-message-id="<%= reply.id %>" data-controller="message-menu">
+<%
+  current_person = local_assigns.fetch(:current_person, nil)
+  highlight_class = current_person && reply.mentions?(current_person) ? 'bg-yellow-50 border-l-4 border-yellow-400 pl-3' : ''
+%>
+<div class="flex items-start space-x-3 group hover:bg-gray-50 -mx-4 px-4 py-2 rounded <%= highlight_class %>" id="message-<%= reply.id %>" data-message-id="<%= reply.id %>" data-controller="message-menu">
   <% if reply.person.avatar.attached? %>
     <%= image_tag reply.person.avatar, class: "h-8 w-8 rounded-full object-cover" %>
   <% else %>
@@ -45,13 +49,13 @@
       </div>
 
       <!-- Reactions -->
-      <%= render "messages/reactions", message: reply %>
+      <%= render "messages/reactions", message: reply, current_person: current_person %>
     <% end %>
   </div>
 
   <!-- Message menu (only for message owner) -->
   <% unless reply.deleted? %>
-    <% if reply.person == current_user.person %>
+    <% if current_person && reply.person == current_person %>
       <div class="opacity-0 group-hover:opacity-100 transition-opacity">
         <div class="relative" data-message-menu-target="menuContainer">
           <button type="button" data-action="click->message-menu#toggleMenu" class="p-1 rounded hover:bg-gray-200">

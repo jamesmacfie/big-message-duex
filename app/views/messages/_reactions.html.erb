@@ -1,7 +1,10 @@
+<%
+  current_person = local_assigns.fetch(:current_person, nil)
+%>
 <div id="reactions-<%= message.id %>" class="mt-1 flex flex-wrap gap-1">
   <% grouped_reactions = message.reactions.group_by(&:emoji) %>
   <% grouped_reactions.each do |emoji, reactions| %>
-    <% user_reacted = reactions.any? { |r| r.person_id == current_user.person.id } %>
+    <% user_reacted = current_person && reactions.any? { |r| r.person_id == current_person.id } %>
     <%= button_to message_reactions_path(message, emoji: emoji), method: :post, data: { turbo_frame: "_top" }, class: "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs #{user_reacted ? 'bg-indigo-100 border-indigo-400' : 'bg-gray-100 border-gray-300'} border hover:bg-indigo-50" do %>
       <span><%= emoji %></span>
       <span class="<%= user_reacted ? 'text-indigo-700 font-medium' : 'text-gray-700' %>"><%= reactions.count %></span>

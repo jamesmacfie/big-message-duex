@@ -2,10 +2,6 @@
   "permissions": {
     "allow": [
       "Bash(ruby --version)",
-      "Read(//usr/local/bin/**)",
-      "Read(//Users/jamesmacfie/.rubies/**)",
-      "Bash(gem list:*)",
-      "Bash(~/.rubies/ruby-3.4.5/bin/gem:*)",
       "Bash(gem:*)",
       "Bash(bundle install:*)",
       "Bash(rails:*)",
@@ -15,9 +11,8 @@
       "Bash(bin/rails:*)",
       "Bash(git log:*)",
       "Bash(git restore:*)",
-      "Bash(RAILS_ENV=test:*)",
       "Bash(cat:*)",
-      "Bash(export PATH=\"$HOME/.gem/ruby/3.4.5/bin:$HOME/.rubies/ruby-3.4.5/bin:$PATH\")"
+      "Bash(ruby:*)"
     ],
     "deny": [],
     "ask": []
