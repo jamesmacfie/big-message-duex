@@ -84,26 +84,24 @@ class MessagesController < ApplicationController
     # Broadcast the message
     if @message.parent_message_id.present?
       # This is a thread reply - broadcast to thread subscribers
-      ChatRoomChannel.broadcast_to(
-        @channel,
-        {
-          type: "thread_reply",
-          parent_message_id: @message.parent_message_id,
-          reply: render_to_string(partial: "messages/thread_reply", locals: { reply: @message, current_person: current_user.person }),
-          sender_id: current_user.person.id
-        }
-      )
+      payload = {
+        type: "thread_reply",
+        parent_message_id: @message.parent_message_id,
+        reply: render_to_string(partial: "messages/thread_reply", locals: { reply: @message, current_person: current_user.person }),
+        sender_id: current_user.person.id
+      }
+      Rails.logger.info "MessagesController: Broadcasting thread_reply for message #{@message.id} to channel #{@channel.id}"
+      ChatRoomChannel.broadcast_to(@channel, payload)
     else
       # This is a top-level message - broadcast normally
-      ChatRoomChannel.broadcast_to(
-        @channel,
-        {
-          type: "message",
-          message: render_to_string(partial: "messages/message", locals: { message: @message, current_person: current_user.person }),
-          sender_id: current_user.person.id,
-          channel_id: @channel.id
-        }
-      )
+      payload = {
+        type: "message",
+        message: render_to_string(partial: "messages/message", locals: { message: @message, current_person: current_user.person }),
+        sender_id: current_user.person.id,
+        channel_id: @channel.id
+      }
+      Rails.logger.info "MessagesController: Broadcasting message #{@message.id} to channel #{@channel.id}"
+      ChatRoomChannel.broadcast_to(@channel, payload)
     end
 
     respond_to do |format|

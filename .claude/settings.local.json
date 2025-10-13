@@ -13,7 +13,9 @@
       "Bash(git restore:*)",
       "Bash(cat:*)",
       "Bash(ruby:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(redis-cli:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

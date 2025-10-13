@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  # Action Cable for WebSocket connections
+  mount ActionCable.server => '/cable'
+
   # Authentication routes
   get "signup", to: "registrations#new"
   post "signup", to: "registrations#create"

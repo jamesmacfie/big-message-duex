@@ -30,11 +30,15 @@ class ApplicationController < ActionController::Base
 
   def log_in(user)
     session[:user_id] = user.id
+    # Also set a signed cookie for Action Cable authentication
+    # Action Cable can't access the session, so it needs this cookie
+    cookies.signed.permanent[:user_id] = user.id
     @current_user = user
   end
 
   def log_out
     session.delete(:user_id)
+    cookies.delete(:user_id)
     @current_user = nil
   end
 end
