@@ -1,5 +1,5 @@
-<div id="thread-indicator-<%= message.id %>" class="mt-2 flex items-center space-x-4">
-  <% if message.has_replies? %>
+<% if message.has_replies? %>
+  <div id="thread-indicator-<%= message.id %>" class="mt-2 flex items-center space-x-4">
     <div class="flex items-center space-x-3">
       <!-- Replier avatars -->
       <div class="flex -space-x-2">
@@ -38,12 +38,5 @@
         </span>
       </button>
     </div>
-  <% else %>
-    <button type="button"
-            data-action="click->thread#open"
-            data-message-id="<%= message.id %>"
-            class="text-xs text-gray-500 hover:text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
-      Reply in thread
-    </button>
-  <% end %>
-</div>
+  </div>
+<% end %>

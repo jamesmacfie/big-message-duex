@@ -21,7 +21,6 @@
                     action: "turbo:submit-end->messages#resetForm submit->messages#handleSubmit",
                     controller: "file-upload"
                   } do |f| %>
-      <%= hidden_field_tag :client_temp_id, "", data: { messages_target: "clientTempId" } %>
       <div class="flex items-start space-x-3">
         <div class="flex-1 relative">
           <%= f.text_area :content,

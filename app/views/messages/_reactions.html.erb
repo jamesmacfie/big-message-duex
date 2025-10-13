@@ -16,7 +16,7 @@
     <button type="button" data-action="click->dropdown#toggle" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-50 border border-gray-300 hover:bg-gray-100">
       <span>😀</span>
     </button>
-    <div data-dropdown-target="menu" class="hidden absolute left-0 mt-1 p-2 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+    <div data-dropdown-target="menu" class="hidden absolute left-0 bottom-full mb-1 p-2 bg-white rounded-md shadow-lg border border-gray-200 z-10">
       <div class="flex gap-1">
         <% %w[👍 ❤️ 😂 😮 😢 🎉].each do |emoji| %>
           <%= button_to message_reactions_path(message, emoji: emoji), method: :post, data: { turbo_frame: "_top" }, class: "p-1 hover:bg-gray-100 rounded" do %>

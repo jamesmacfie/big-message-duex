@@ -10,6 +10,7 @@ class Message < ApplicationRecord
 
   validates :person, presence: true
   validates :channel, presence: true
+  validates :content, presence: true
 
   after_create :process_mentions
   after_update :process_mentions, if: :saved_change_to_content?

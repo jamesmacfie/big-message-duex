@@ -1,6 +1,13 @@
-<div class="flex h-screen bg-gray-100">
+<div class="flex h-screen bg-gray-100" data-controller="sidebar">
+  <!-- Mobile backdrop -->
+  <div data-sidebar-target="backdrop"
+       data-action="click->sidebar#close"
+       class="hidden fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden">
+  </div>
+
   <!-- Sidebar -->
-  <div class="w-64 bg-indigo-900 text-white flex flex-col">
+  <div data-sidebar-target="sidebar"
+       class="w-64 bg-indigo-900 text-white flex flex-col fixed md:relative inset-y-0 left-0 z-40 -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
     <!-- Workspace header -->
     <div class="p-4 border-b border-indigo-800">
       <h1 class="text-xl font-bold">Big Message</h1>
@@ -159,10 +166,18 @@
          data-messages-channel-id-value="<%= @channel.id %>"
          data-messages-current-person-id-value="<%= current_user.person.id %>">
     <!-- Channel header -->
-    <div class="bg-white border-b border-gray-200 px-6 py-4">
+    <div class="bg-white border-b border-gray-200 px-4 py-2 md:px-6 md:py-4">
       <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <h2 class="text-xl font-bold text-gray-900 flex items-center">
+        <div class="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
+          <!-- Mobile hamburger menu -->
+          <button type="button"
+                  data-action="click->sidebar#toggle"
+                  class="md:hidden text-gray-600 hover:text-gray-900 p-1">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+          <h2 class="text-lg md:text-xl font-bold text-gray-900 flex items-center truncate">
             <% if @channel.dm? %>
               <span class="text-gray-500 mr-2">@</span>
               <%= @channel.dm_name_for(current_user.person) %>
@@ -177,12 +192,12 @@
             </svg>
           <% end %>
           <% if @current_member&.admin? %>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+            <span class="hidden md:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
               Admin
             </span>
           <% end %>
         </div>
-        <div class="flex items-center space-x-4">
+        <div class="hidden md:flex items-center space-x-4">
           <%= link_to channel_members_path(@channel), class: "text-sm text-gray-500 hover:text-gray-700" do %>
             <%= pluralize(@channel.members.count, 'member') %>
           <% end %>
@@ -210,12 +225,12 @@
         </div>
       </div>
       <% if @channel.description.present? %>
-        <p class="text-sm text-gray-600 mt-1"><%= @channel.description %></p>
+        <p class="hidden md:block text-sm text-gray-600 mt-1"><%= @channel.description %></p>
       <% end %>
     </div>
 
     <!-- Messages area -->
-    <div class="flex-1 overflow-y-auto px-6 py-4 bg-white">
+    <div class="flex-1 overflow-y-auto px-4 py-3 md:px-6 md:py-4 bg-white">
       <% if @messages.empty? %>
         <div class="flex items-center justify-center h-full">
           <div class="text-center max-w-md">
@@ -275,7 +290,7 @@
     </div>
 
     <!-- Thread panel (initially hidden, populated by Stimulus) -->
-    <div id="thread-panel" class="w-96 hidden">
+    <div id="thread-panel" class="hidden">
     </div>
   </div>
 </div>

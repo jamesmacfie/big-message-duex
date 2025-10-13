@@ -101,8 +101,7 @@ class MessagesController < ApplicationController
           type: "message",
           message: render_to_string(partial: "messages/message", locals: { message: @message, current_person: current_user.person }),
           sender_id: current_user.person.id,
-          channel_id: @channel.id,
-          client_temp_id: params[:client_temp_id]
+          channel_id: @channel.id
         }
       )
     end
@@ -268,8 +267,7 @@ class MessagesController < ApplicationController
         type: "message",
         message: render_to_string(partial: "messages/message", locals: { message: @message, current_person: current_user.person }),
         sender_id: current_user.person.id,
-        channel_id: @channel.id,
-        client_temp_id: params[:client_temp_id]
+        channel_id: @channel.id
       }
     )
 

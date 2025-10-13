@@ -1,13 +1,13 @@
 <%
   current_person = local_assigns.fetch(:current_person, nil)
 %>
-<div class="flex flex-col h-full bg-white border-l border-gray-200">
+<div class="flex flex-col h-full bg-white border-l border-gray-200 fixed inset-0 z-50 md:relative md:w-96 md:inset-auto md:z-auto">
   <!-- Thread header -->
-  <div class="px-6 py-4 border-b border-gray-200">
+  <div class="px-4 py-3 md:px-6 md:py-4 border-b border-gray-200">
     <div class="flex items-center justify-between">
-      <h3 class="text-lg font-semibold text-gray-900">Thread</h3>
-      <button type="button" data-action="click->thread#close" class="text-gray-400 hover:text-gray-600">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <h3 class="text-base md:text-lg font-semibold text-gray-900">Thread</h3>
+      <button type="button" data-action="click->thread#close" class="text-gray-400 hover:text-gray-600 p-2 md:p-1">
+        <svg class="w-6 h-6 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
@@ -15,7 +15,7 @@
   </div>
 
   <!-- Parent message -->
-  <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+  <div class="px-4 py-3 md:px-6 md:py-4 border-b border-gray-200 bg-gray-50">
     <div class="flex items-start space-x-3">
       <% if message.person.avatar.attached? %>
         <%= image_tag message.person.avatar, class: "h-10 w-10 rounded-full object-cover" %>
@@ -43,7 +43,7 @@
   </div>
 
   <!-- Replies list -->
-  <div class="flex-1 overflow-y-auto px-6 py-4">
+  <div class="flex-1 overflow-y-auto px-4 py-3 md:px-6 md:py-4">
     <div id="thread-replies-<%= message.id %>" class="space-y-4">
       <% if replies.any? %>
         <%= render partial: "messages/thread_reply", collection: replies, as: :reply, locals: { current_person: current_person } %>
@@ -54,13 +54,17 @@
   </div>
 
   <!-- Reply form -->
-  <div class="border-t border-gray-200 px-6 py-4 bg-white">
+  <div class="border-t border-gray-200 px-4 py-3 md:px-6 md:py-4 bg-white">
     <div class="relative"
          data-controller="mention-autocomplete file-upload"
          data-mention-autocomplete-channel-id-value="<%= channel.id %>">
       <%= form_with model: [channel, reply],
                     class: "flex flex-col space-y-2",
-                    data: { thread_target: "replyForm", action: "turbo:submit-end->thread#resetReplyForm" } do |f| %>
+                    data: {
+                      messages_target: "form",
+                      thread_target: "replyForm",
+                      action: "turbo:submit-end->thread#resetReplyForm turbo:submit-end->messages#resetForm submit->messages#handleSubmit"
+                    } do |f| %>
         <%= f.hidden_field :parent_message_id %>
         <div class="flex items-start space-x-3">
           <div class="flex-1 relative">
@@ -69,9 +73,10 @@
                 placeholder: "Reply to thread...",
                 class: "w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none",
                 data: {
+                  messages_target: "input",
                   thread_target: "replyInput",
                   mention_autocomplete_target: "input",
-                  action: "keydown->thread#handleKeydown keydown->mention-autocomplete#handleKeydown input->mention-autocomplete#handleInput"
+                  action: "keydown->thread#handleKeydown keydown->messages#handleKeydown keydown->mention-autocomplete#handleKeydown input->messages#handleInput input->mention-autocomplete#handleInput"
                 } %>
             <!-- Autocomplete dropdown -->
             <div data-mention-autocomplete-target="dropdown"

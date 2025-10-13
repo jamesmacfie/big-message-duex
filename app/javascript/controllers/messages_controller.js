@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus"
 import consumer from "channels/consumer"
 
 export default class extends Controller {
-  static targets = ["container", "form", "input", "typingIndicator", "clientTempId"]
+  static targets = ["container", "form", "input", "typingIndicator"]
   static values = {
     channelId: Number,
     currentPersonId: Number
@@ -31,13 +31,6 @@ export default class extends Controller {
     this.typingTimeouts = new Map()
     this.typingTimeout = null
     this.isTyping = false
-    this.optimisticMessageCounter = 0
-    this.optimisticMessageMap = new Map()
-    this.isSubmitting = false
-
-    if (this.hasClientTempIdTarget) {
-      this.clientTempIdTarget.value = ''
-    }
   }
 
   disconnect() {
@@ -53,8 +46,6 @@ export default class extends Controller {
       this.typingTimeouts.forEach(timeout => clearTimeout(timeout))
       this.typingTimeouts.clear()
     }
-
-    this.optimisticMessageMap = new Map()
 
     if (this.subscription) {
       this.subscription.unsubscribe()
@@ -82,11 +73,6 @@ export default class extends Controller {
       if (data.person_id !== this.currentPersonIdValue) {
         this.removeTypingPerson(data.person_id)
       }
-      return
-    }
-
-    if (data.type === "message" && data.sender_id === this.currentPersonIdValue) {
-      this.removeOptimisticMessage(data.client_temp_id)
       return
     }
 
@@ -203,15 +189,7 @@ export default class extends Controller {
   }
 
   resetForm(event) {
-    const tempId = event.detail?.formSubmission?.formData?.get('client_temp_id') || null
-
     if (event.detail.success !== false) {
-      this.removeOptimisticMessage(tempId)
-
-      if (this.hasClientTempIdTarget) {
-        this.clientTempIdTarget.value = ''
-      }
-
       if (this.hasInputTarget && this.hasFormTarget) {
         this.inputTarget.value = ''
         this.inputTarget.focus()
@@ -233,45 +211,17 @@ export default class extends Controller {
         clearTimeout(this.typingTimeout)
         this.typingTimeout = null
       }
-    } else {
-      this.removeOptimisticMessage(tempId)
-      if (this.hasClientTempIdTarget) {
-        this.clientTempIdTarget.value = ''
-      }
     }
   }
 
   handleSubmit(event) {
-    // Prevent infinite loop - if we're already submitting, let it through
-    if (this.isSubmitting) {
-      this.isSubmitting = false
-      return
-    }
-
-    // Prevent default to set client_temp_id before form data is captured
-    event.preventDefault()
-
-    // Don't show optimistic message if there are file attachments
-    // (they need to be uploaded first)
-    const fileInput = this.formTarget.querySelector('input[type="file"]')
-    if (fileInput && fileInput.files.length > 0) {
-      // Just submit without optimistic UI
-      this.isSubmitting = true
-      event.target.requestSubmit()
-      return
-    }
-
     const content = this.inputTarget.value.trim()
     if (!content) {
+      event.preventDefault()
       return
     }
 
-    // Create optimistic message and set client_temp_id BEFORE submitting
-    this.createAndShowOptimisticMessage(content)
-
-    // Now submit the form with client_temp_id set
-    this.isSubmitting = true
-    event.target.requestSubmit()
+    // Let form submit naturally
   }
 
   handleKeydown(event) {
@@ -284,61 +234,6 @@ export default class extends Controller {
         this.formTarget.dispatchEvent(submitEvent)
       }
     }
-  }
-
-  createAndShowOptimisticMessage(content) {
-    // Only create optimistic UI if we have a container (not on GIF preview page, etc.)
-    if (!this.hasContainerTarget) {
-      return
-    }
-
-    // Create optimistic message immediately
-    const optimisticId = `optimistic-${this.optimisticMessageCounter++}`
-    const tempId = this.generateTempId()
-    const messageHtml = this.createOptimisticMessage(content, optimisticId)
-
-    // Add to DOM
-    this.containerTarget.insertAdjacentHTML("beforeend", messageHtml)
-    this.scrollToBottom()
-
-    // Track optimistic message so we can remove it later
-    this.optimisticMessageMap.set(tempId, optimisticId)
-
-    if (this.hasClientTempIdTarget) {
-      this.clientTempIdTarget.value = tempId
-    }
-  }
-
-  createOptimisticMessage(content, optimisticId) {
-    // Get current user info from the page
-    const userNameElement = document.querySelector('[data-messages-current-person-id-value]')
-    const userName = userNameElement?.closest('[data-controller~="messages"]')?.querySelector('.text-sm')?.textContent || 'You'
-
-    const now = new Date()
-    const timeString = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
-
-    // Escape HTML in content
-    const escapedContent = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-
-    return `
-      <div class="flex items-start space-x-3 group opacity-60" id="${optimisticId}" data-optimistic="true">
-        <div class="flex-shrink-0">
-          <div class="h-10 w-10 rounded bg-indigo-600 flex items-center justify-center">
-            <span class="text-sm font-medium text-white">${userName[0]?.toUpperCase() || 'U'}</span>
-          </div>
-        </div>
-        <div class="flex-1 min-w-0">
-          <div class="flex items-baseline space-x-2">
-            <span class="text-sm font-semibold text-gray-900">${userName}</span>
-            <span class="text-xs text-gray-500">${timeString}</span>
-            <span class="text-xs text-gray-400 italic">Sending...</span>
-          </div>
-          <div class="mt-1 text-sm text-gray-700">
-            <p>${escapedContent}</p>
-          </div>
-        </div>
-      </div>
-    `
   }
 
   handleInput(event) {
@@ -417,35 +312,6 @@ export default class extends Controller {
     } else {
       this.typingIndicatorTarget.classList.remove('hidden')
       this.typingIndicatorTarget.textContent = `${typingArray.length} people are typing...`
-    }
-  }
-
-  generateTempId() {
-    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
-      return window.crypto.randomUUID()
-    }
-
-    return `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`
-  }
-
-  removeOptimisticMessage(tempId = null) {
-    let optimisticId = null
-
-    if (tempId && this.optimisticMessageMap.has(tempId)) {
-      optimisticId = this.optimisticMessageMap.get(tempId)
-      this.optimisticMessageMap.delete(tempId)
-    } else if (!tempId) {
-      return
-    } else {
-      // tempId was provided but we no longer have a matching optimistic entry
-      return
-    }
-
-    if (!optimisticId) return
-
-    const optimisticElement = document.getElementById(optimisticId)
-    if (optimisticElement) {
-      optimisticElement.remove()
     }
   }
 

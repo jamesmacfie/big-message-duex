@@ -12,7 +12,8 @@
       "Bash(git log:*)",
       "Bash(git restore:*)",
       "Bash(cat:*)",
-      "Bash(ruby:*)"
+      "Bash(ruby:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

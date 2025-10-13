@@ -50,6 +50,11 @@ export default class extends Controller {
         this.threadPanel.innerHTML = html
         this.threadPanel.classList.remove("hidden")
 
+        // Prevent body scroll on mobile when thread is open
+        if (window.innerWidth < 768) {
+          document.body.style.overflow = 'hidden'
+        }
+
         // Focus the reply input
         setTimeout(() => {
           const replyInput = this.threadPanel.querySelector('textarea[data-thread-target="replyInput"]')
@@ -82,6 +87,9 @@ export default class extends Controller {
       this.threadObserver.disconnect()
       this.setupThreadSubscription() // Reset for next use
     }
+
+    // Restore body scroll
+    document.body.style.overflow = ''
 
     this.threadPanel.classList.add("hidden")
     this.threadPanel.innerHTML = ""
