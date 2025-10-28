@@ -1,0 +1,26 @@
+<!-- Search Bar -->
+<div class="px-4 py-3 border-b border-indigo-800" data-controller="search">
+  <div class="relative">
+    <!-- Search Input -->
+    <div class="relative">
+      <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+        <svg class="h-4 w-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+      </div>
+      <input type="text"
+             data-search-target="input"
+             data-action="input->search#search keydown->search#handleKeydown"
+             placeholder="Search..."
+             class="block w-full pl-10 pr-3 py-2 border border-indigo-700 rounded-md leading-5 bg-indigo-800 text-white placeholder-indigo-400 focus:outline-none focus:bg-indigo-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 sm:text-sm">
+    </div>
+
+    <!-- Search Results Dropdown -->
+    <div data-search-target="dropdown"
+         class="hidden absolute z-50 mt-2 w-full bg-indigo-900 rounded-md shadow-lg border border-indigo-700 max-h-96 overflow-hidden">
+      <div data-search-target="results">
+        <!-- Results will be loaded here -->
+      </div>
+    </div>
+  </div>
+</div>
