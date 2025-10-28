@@ -5,6 +5,7 @@ export default class extends Controller {
 
   connect() {
     console.log("File upload controller connected")
+    this.uploading = false
   }
 
   handleFiles(event) {
@@ -24,22 +25,30 @@ export default class extends Controller {
     files.forEach((file, index) => {
       const fileItem = document.createElement("div")
       fileItem.className = "flex items-center justify-between py-1 px-2 bg-white rounded border border-gray-200"
+      fileItem.dataset.fileIndex = index
 
       const fileInfo = document.createElement("div")
       fileInfo.className = "flex items-center space-x-2 flex-1"
 
       const fileIcon = this.getFileIcon(file.type)
       fileInfo.innerHTML = `
-        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           ${fileIcon}
         </svg>
-        <span class="text-sm text-gray-700 truncate">${file.name}</span>
-        <span class="text-xs text-gray-500">${this.formatFileSize(file.size)}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center space-x-2">
+            <span class="text-sm text-gray-700 truncate">${file.name}</span>
+            <span class="text-xs text-gray-500 flex-shrink-0">${this.formatFileSize(file.size)}</span>
+          </div>
+          <div class="upload-progress hidden mt-1">
+            <div class="upload-progress-bar" style="width: 0%"></div>
+          </div>
+        </div>
       `
 
       const removeButton = document.createElement("button")
       removeButton.type = "button"
-      removeButton.className = "text-red-600 hover:text-red-800"
+      removeButton.className = "text-red-600 hover:text-red-800 flex-shrink-0 ml-2"
       removeButton.innerHTML = `
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -51,6 +60,29 @@ export default class extends Controller {
       fileItem.appendChild(removeButton)
       this.listTarget.appendChild(fileItem)
     })
+  }
+
+  startUpload() {
+    this.uploading = true
+    // Show progress bars for all files
+    this.listTarget.querySelectorAll(".upload-progress").forEach(progressBar => {
+      progressBar.classList.remove("hidden")
+    })
+    // Simulate upload progress (in real implementation, this would track actual upload)
+    this.simulateProgress()
+  }
+
+  simulateProgress() {
+    let progress = 0
+    const interval = setInterval(() => {
+      progress += 10
+      this.listTarget.querySelectorAll(".upload-progress-bar").forEach(bar => {
+        bar.style.width = `${Math.min(progress, 100)}%`
+      })
+      if (progress >= 100) {
+        clearInterval(interval)
+      }
+    }, 100)
   }
 
   removeFile(index) {
