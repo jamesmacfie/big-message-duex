@@ -23,6 +23,9 @@ Rails.application.routes.draw do
   # Direct Messages
   resources :dms, only: [ :new, :create ]
 
+  # Search
+  get "search", to: "search#index"
+
   # Messages (for reactions)
   resources :messages, only: [] do
     resources :reactions, only: [ :create ]

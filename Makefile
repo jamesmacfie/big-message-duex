@@ -4,7 +4,7 @@
 SHELL := /bin/bash
 
 # Ruby environment
-export PATH := $(HOME)/.gem/ruby/3.4.5/bin:$(HOME)/.rubies/ruby-3.4.5/bin:$(PATH)
+export PATH := $(HOME)/.gem/ruby/3.3.6/bin:$(HOME)/.rubies/ruby-3.3.6/bin:$(PATH)
 
 # Help command
 help:
